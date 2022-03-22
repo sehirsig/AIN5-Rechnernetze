@@ -10,6 +10,13 @@ ereignis3 = (2, 0, 0, 0, 0)
 queuePushLock = Lock()
 queuePopLock = Lock()
 
+#Konstanten für Ereignisse
+CUSTOMER_ENTRANCE = 0
+EXITED_FROM_BAKER = 1
+EXITED_FROM_BAKER_FROM_SAUSAGE = 2
+EXITED_FROM_CHEESE = 3
+EXITED_FROM_CHECKOUT = 4
+
 class Ereignisliste:
     simulationszeit = 0
     ereignisnummer = 0
@@ -34,10 +41,9 @@ class Ereignisliste:
         return len(self.queue) == 0
 
     def start(self):  # Startet die Simulation
-        for event in self.queue:
-            # Do Something with Event
-            print(event)
-            self.queue.pop
+        while not self.isEmpty():
+            e = self.pop()
+
 
 
 class KundIn:
