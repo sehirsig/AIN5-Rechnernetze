@@ -1,4 +1,5 @@
 import heapq
+from threading import Lock
 
 # Ereignis = (ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
 # Ein Ereignis ist ein 5-Tupel
@@ -6,6 +7,8 @@ ereignis1 = (0, 0, 0, 0, 0)
 ereignis2 = (1, 0, 0, 0, 0)
 ereignis3 = (2, 0, 0, 0, 0)
 
+queuePushLock = Lock()
+queuePopLock = Lock()
 
 class Ereignisliste:
     queue = []
@@ -17,10 +20,15 @@ class Ereignisliste:
         self.ereignisnummer = e
 
     def pop(self):
-        return heapq.heappop(self.queue)
+        queuePopLock.acquire()
+        e = heapq.heappop(self.queue)
+        queuePopLock.release()
+        return e
 
     def push(self, a):
+        queuePushLock.acquire()
         heapq.heappush(self.queue, a)
+        queuePushLock.release()
 
     def start(self):  # Startet die Simulation
         for event in self.queue:
