@@ -11,13 +11,13 @@ queuePushLock = Lock()
 queuePopLock = Lock()
 
 class Ereignisliste:
-    queue = []
     simulationszeit = 0
     ereignisnummer = 0
 
     def __init__(self, s, e):
         self.simulationszeit = s
         self.ereignisnummer = e
+        self.queue = []
 
     def pop(self):
         queuePopLock.acquire()
@@ -29,6 +29,9 @@ class Ereignisliste:
         queuePushLock.acquire()
         heapq.heappush(self.queue, a)
         queuePushLock.release()
+
+    def isEmpty(self):
+        return len(self.queue) == 0
 
     def start(self):  # Startet die Simulation
         for event in self.queue:
