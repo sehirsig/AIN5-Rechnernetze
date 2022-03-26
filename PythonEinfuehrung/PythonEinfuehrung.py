@@ -7,15 +7,19 @@ ereignis1 = (0, 0, 0, 0, 0)
 ereignis2 = (1, 0, 0, 0, 0)
 ereignis3 = (2, 0, 0, 0, 0)
 
+time = 0
+ereignisnummer = 0
+
 queuePushLock = Lock()
 queuePopLock = Lock()
 
-#Konstanten für Ereignisse
+# Konstanten für Ereignisse
 CUSTOMER_ENTRANCE = 0
 EXITED_FROM_BAKER = 1
 EXITED_FROM_BAKER_FROM_SAUSAGE = 2
 EXITED_FROM_CHEESE = 3
 EXITED_FROM_CHECKOUT = 4
+
 
 class Ereignisliste:
     simulationszeit = 0
@@ -45,62 +49,98 @@ class Ereignisliste:
             e = self.pop()
 
 
-
 class KundIn:
     liste = list()
 
     def __init__(self, stationenTupleListe):  # Liste aus Tuplen mit List((Station, T, W, N), (Station, T, W, N), ... )
         self.liste = list(stationenTupleListe)
+        self.aufenthalt = None
 
-    def beginn_einkauf(self): #Ereignis kreiren
-        if self.liste: #Wenn Liste nicht Leer ist
-            self.liste = self.liste# Abarbeitung
+    def beginn_einkauf(self):  # Ereignis kreiren
+        if self.liste:  # Wenn Liste nicht Leer ist
+            self.liste = self.liste  # Abarbeitung
 
-    def ankunft_station(self): #Ereignis kreiren
-        self.liste = self.liste# Abarbeitung
+    def ankunft_station(self):  # Ereignis kreiren
+        self.liste = self.liste  # Abarbeitung
 
-    def verlassen_station(self): #Ereignis kreiren
+    def verlassen_station(self):  # Ereignis kreiren
         self.liste.pop()
 
+    def einkaufen(self): pass
+
+    def wechseln(self): pass
+
+
+class KundeTyp1(KundIn):
+    def __init__(self, stationenTupleListe):
+        KundIn.__init__(stationenTupleListe)
+
+    def einkaufen(self):
+        print()
+
+    def wechseln(self):
+        print()
+
+
+class KundeTyp2(KundIn):
+    def __init__(self, stationenTupleListe):
+        KundIn.__init__(stationenTupleListe)
+
+    def einkaufen(self):
+        print()
+
+    def wechseln(self):
+        print()
 
 
 class Station:
     queue = list()
     Bediendauer = 0
 
-    def __init__(self, bediendauer):
+    def __init__(self, bediendauer, ereignisliste):
         self.Bediendauer = bediendauer
+        self.aktuellerKunde = None
+        self.bedient_seit = 0
+        self.ereignisliste = ereignisliste
 
     def anstellen(self, KundIn):  # Add to queue
         self.queue.append(KundIn)
 
+    def bedienen(self):
+        self.aktuellerKunde = self.queue[-1]
+        self.queue.remove(self.queue[-1])
+
     def fertig(self, KundIn):  # Delete like FIFO
         # Abarbeitung
-        self.queue.remove(self, KundIn)
+        global time
+        self.ereignisliste.push((time, 0, 0, 0, 0))
 
 
+ereignisListe = Ereignisliste(150, 0)
 # Stationen
 # Bäcker
-baecker = Station(10)
+baecker = Station(10, ereignisListe)
 # Wursttheke
-wursttheke = Station(30)
+wursttheke = Station(30, ereignisListe)
 # Käsetheke
-kaesetheke = Station(60)
+kaesetheke = Station(60, ereignisListe)
 # Kasse
-kasse = Station(5)
+kasse = Station(5, ereignisListe)
+
+print(type(KundeTyp1(4)))
 
 # Typ 1 (Station(Bediendauer), T, W, N)
 # Bäcker (baecker, 10, 10, 10)
 # Wursttheke (wursttheke, 30, 10, 5)
 # Käsetheke (kaesetheke, 45, 5, 3)
 # Kasse (kasse, 60, 20, 30)
-typ1 = list(((baecker,10, 10, 10), (wursttheke,30, 10, 5), (kaesetheke,45, 5, 3), (kasse,60, 20, 30)))
+typ1 = list(((baecker, 10, 10, 10), (wursttheke, 30, 10, 5), (kaesetheke, 45, 5, 3), (kasse, 60, 20, 30)))
 
 # Typ 2 (Station(Bediendauer), T, W, N)
 # Wursttheke (wursttheke, 30, 5, 2)
 # Kasse (kasse, 30, 20, 3)
 # Bäcker (baecker, 20, 20, 3)
-typ2 = list(((wursttheke,30, 5, 2), (kasse,30, 20, 3), (baecker,20, 20, 3)))
+typ2 = list(((wursttheke, 30, 5, 2), (kasse, 30, 20, 3), (baecker, 20, 20, 3)))
 
 print(typ1)
 
