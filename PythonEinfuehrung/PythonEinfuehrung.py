@@ -1,11 +1,10 @@
 import heapq
 from threading import Lock
 
-# Ereignis = (ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
-# Ein Ereignis ist ein 5-Tupel
-ereignis1 = (0, 0, 0, 0, 0)
-ereignis2 = (1, 0, 0, 0, 0)
-ereignis3 = (2, 0, 0, 0, 0)
+#Idee
+# Nur Kunden rufen die Ereignisliste auf, neue Ereignisse.
+# Die Stationen bekommen wir aus der Liste des Kunden, und können von da deren Methoden aufrufen
+
 
 time = 0
 ereignisnummer = 0
@@ -46,7 +45,16 @@ class Ereignisliste:
 
     def start(self):  # Startet die Simulation
         while not self.isEmpty():
-            e = self.pop()
+            tuple, caller = self.pop()
+            d, e, f, g, h = tuple
+            if (isinstance(caller, KundIn)): # Wenn der Aufrufer ein KundIn ist. Muss immer Kunde sein, sonnst klappt heapQueue nicht!
+                caller.sagHallo()
+                #print(caller)
+                #print(d)
+                #print(e)
+                #print(f)
+                #print(g)
+                #print(h)
 
 
 class KundIn:
@@ -58,13 +66,17 @@ class KundIn:
 
     def beginn_einkauf(self):  # Ereignis kreiren
         if self.liste:  # Wenn Liste nicht Leer ist
-            self.liste = self.liste  # Abarbeitung
+            self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann nächste Ankunft
 
     def ankunft_station(self):  # Ereignis kreiren
-        self.liste = self.liste  # Abarbeitung
+        self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann Zuende
+        # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen (liste pop)
 
-    def verlassen_station(self):  # Ereignis kreiren
+    def verlassen_station(self):  # Ereignis kreiren, Eintrag in Eventliste wann nächste Ankunft
         self.liste.pop()
+
+    def sagHallo(self):
+        print("Ich bin ein Kunde")
 
     def einkaufen(self): pass
 
@@ -127,7 +139,6 @@ kaesetheke = Station(60, ereignisListe)
 # Kasse
 kasse = Station(5, ereignisListe)
 
-print(type(KundeTyp1(4)))
 
 # Typ 1 (Station(Bediendauer), T, W, N)
 # Bäcker (baecker, 10, 10, 10)
@@ -142,12 +153,17 @@ typ1 = list(((baecker, 10, 10, 10), (wursttheke, 30, 10, 5), (kaesetheke, 45, 5,
 # Bäcker (baecker, 20, 20, 3)
 typ2 = list(((wursttheke, 30, 5, 2), (kasse, 30, 20, 3), (baecker, 20, 20, 3)))
 
-print(typ1)
+typ1kunde1 = KundIn(typ1)
+typ2kunde1 = KundIn(typ2)
+
+# Ereignis = (ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
+# Ein Ereignis ist ein 5-Tupel
+ereignis1 = ((1, 2, 3, 4, 5), typ1kunde1)
+ereignis2 = ((6, 7, 8, 9, 10), typ2kunde1)
 
 a = Ereignisliste(20, 20)
 
 a.push(ereignis1)
 a.push(ereignis2)
-a.push(ereignis3)
 
 a.start()
