@@ -14,10 +14,11 @@ queuePopLock = Lock()
 
 # Konstanten für Ereignisse
 CUSTOMER_ENTRANCE = 0
-EXITED_FROM_BAKER = 1
-EXITED_FROM_BAKER_FROM_SAUSAGE = 2
-EXITED_FROM_CHEESE = 3
-EXITED_FROM_CHECKOUT = 4
+CUSTOMER_ARRIVE = 1
+CUSTOMER_EXIT = 2
+STATION_QUEUE = 3
+STATION_SERVE = 4
+STATION_FINISHED = 5
 
 
 class Ereignisliste:
@@ -46,9 +47,28 @@ class Ereignisliste:
     def start(self):  # Startet die Simulation
         while not self.isEmpty():
             tuple, caller = self.pop()
-            d, e, f, g, h = tuple
+            d, e, f, g, h = tuple #(ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
             if (isinstance(caller, KundIn)): # Wenn der Aufrufer ein KundIn ist. Muss immer Kunde sein, sonnst klappt heapQueue nicht!
                 caller.sagHallo()
+                #TESTEN, welche Ereignisfunktion
+                if g == CUSTOMER_ENTRANCE:
+                    caller.beginn_einkauf()
+                elif g == CUSTOMER_ARRIVE:
+                    caller.ankunft_station()
+                elif g == CUSTOMER_EXIT:
+                    caller.verlassen_station()
+                elif g == STATION_QUEUE:
+                    station_temp = caller.liste[0][0]
+                    station_temp.anstellen(caller)
+                elif g == STATION_SERVE:
+                    station_temp = caller.liste[0][0]
+                    station_temp.bedienen()
+                elif g == STATION_FINISHED:
+                    station_temp = caller.liste[0][0]
+                    station_temp.fertig(caller)
+                else:
+                    rr = 2 #Just a Blank, nothing for use
+
                 #print(caller)
                 #print(d)
                 #print(e)
@@ -70,6 +90,7 @@ class KundIn:
 
     def ankunft_station(self):  # Ereignis kreiren
         self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann Zuende
+        ereignisListe.push(((4,4,4,4,4), self)) # Debug/Test Push
         # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen (liste pop)
 
     def verlassen_station(self):  # Ereignis kreiren, Eintrag in Eventliste wann nächste Ankunft
@@ -105,7 +126,12 @@ class KundeTyp2(KundIn):
         print()
 
 
+#Station Status
+STATION_IDLE = 0
+STATION_BUSY = 1
+
 class Station:
+    station_status = STATION_IDLE
     queue = list()
     Bediendauer = 0
 
@@ -117,15 +143,21 @@ class Station:
 
     def anstellen(self, KundIn):  # Add to queue
         self.queue.append(KundIn)
+        #Ereignis wann der Kunde bedient wird.
 
     def bedienen(self):
-        self.aktuellerKunde = self.queue[-1]
-        self.queue.remove(self.queue[-1])
+        self.aktuellerKunde = self.queue.pop()
+        self.station_status = STATION_BUSY
 
     def fertig(self, KundIn):  # Delete like FIFO
         # Abarbeitung
         global time
         self.ereignisliste.push((time, 0, 0, 0, 0))
+        if (self.isEmpty()):
+            self.station_status = STATION_IDLE
+
+    def isEmpty(self):
+        return len(self.queue) == 0
 
 
 ereignisListe = Ereignisliste(150, 0)
@@ -158,12 +190,14 @@ typ2kunde1 = KundIn(typ2)
 
 # Ereignis = (ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
 # Ein Ereignis ist ein 5-Tupel
-ereignis1 = ((1, 2, 3, 4, 5), typ1kunde1)
-ereignis2 = ((6, 7, 8, 9, 10), typ2kunde1)
+ereignis1 = ((1, 2, 3, 1, 5), typ1kunde1)
+ereignis2 = ((2, 2, 3, 2, 5), typ1kunde1)
+ereignis3 = ((6, 7, 8, 9, 10), typ2kunde1)
 
 a = Ereignisliste(20, 20)
 
 a.push(ereignis1)
 a.push(ereignis2)
+a.push(ereignis3)
 
 a.start()
