@@ -20,6 +20,9 @@ STATION_QUEUE = 3
 STATION_SERVE = 4
 STATION_FINISHED = 5
 
+#Tupel (Kunde,ZeitpunktVerlassen,letzteStation)
+kunde_zwischen_stationen = []
+
 
 class Ereignisliste:
     simulationszeit = 0
@@ -75,6 +78,8 @@ class Ereignisliste:
                 #print(f)
                 #print(g)
                 #print(h)
+        # Simulationszeit schreitet voran
+        ereignisListe.simulationszeit+=1
 
 
 class KundIn:
@@ -83,6 +88,7 @@ class KundIn:
     def __init__(self, stationenTupleListe):  # Liste aus Tuplen mit List((Station, T, W, N), (Station, T, W, N), ... )
         self.liste = list(stationenTupleListe)
         self.aufenthalt = None
+        self.bedientBis = None
 
     def beginn_einkauf(self):  # Ereignis kreiren
         if self.liste:  # Wenn Liste nicht Leer ist
@@ -102,6 +108,9 @@ class KundIn:
     def einkaufen(self): pass
 
     def wechseln(self): pass
+
+    def einkauf_beendet(self):
+        ereignisListe.simulationszeit == self.bedientBis
 
 
 class KundeTyp1(KundIn):
@@ -158,6 +167,9 @@ class Station:
 
     def isEmpty(self):
         return len(self.queue) == 0
+
+    def istFertig(self):
+        return self.aktuellerKunde.einkaufBeendet()
 
 
 ereignisListe = Ereignisliste(150, 0)
