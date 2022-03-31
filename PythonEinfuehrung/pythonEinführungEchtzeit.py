@@ -1,12 +1,12 @@
 import time
-from threading import Thread, Lock, Event
+from threading import Thread, Event
 from queue import Queue
 
 
 def spawn_customers():
     customer_id_type1 = 0
     customer_id_type2 = 0
-    while True:
+    for i in range(10):
         time.sleep(1)
         CustomerType1(customer_id_type1).start()
         customer_id_type1 += 1
@@ -40,8 +40,11 @@ class CustomerType1(Customer):
     def __routine__(self):
         time.sleep(5)
         stations[0].enqueue(self)
+        stations[0].endServeEvt.wait()
         time.sleep(5)
         stations[2].enqueue(self)
+        stations[2].endServeEvt.wait()
+        print(self.description() + " ist fertig\n")
 
     def type(self):
         return 1
@@ -54,6 +57,8 @@ class CustomerType2(Customer):
     def __routine__(self):
         time.sleep(10)
         stations[1].enqueue(self)
+        stations[1].endServeEvt.wait()
+        print(self.description() + " ist fertig\n")
 
     def type(self):
         return 2
@@ -65,13 +70,13 @@ class Station:
         self.__current_customer__ = None
         self.__customer_queue__ = Queue()
         self.enqueue_Evt = Event()
-        self.startServeEvt = Event()
         self.endServeEvt = Event()
         self.__t = Thread(target=self.__routine__)
 
     def enqueue(self, customer):
         self.__customer_queue__.put(customer)
-        print(customer.description() + " bei " + self.description + " eingereiht")
+        self.enqueue_Evt.set()
+        print(customer.description() + " bei " + self.description + " eingereiht\n")
 
     def dequeue(self):
         return self.__customer_queue__.get()
@@ -79,13 +84,17 @@ class Station:
     def queue_length(self):
         return len(self.__customer_queue__)
 
+    def queue_is_empty(self):
+        return self.__customer_queue__.empty()
+
     def __routine__(self):
         while True:
-            self.enqueue_Evt.wait()
-            customer = self.__customer_queue__.get()
-            print(customer.description() + "wird bei " + self.description + " bedient")
+            while self.queue_is_empty():
+                self.enqueue_Evt.wait()
+            customer = self.dequeue()
+            print(customer.description() + " wird bei " + self.description + " bedient\n")
             time.sleep(10)
-            print(customer.description() + " verlässt " + self.description)
+            print(customer.description() + " verlässt " + self.description + "\n")
             self.endServeEvt.set()
 
     def start(self):
