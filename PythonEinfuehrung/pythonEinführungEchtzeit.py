@@ -19,6 +19,7 @@ class Customer:
     def __init__(self, customer_id):
         self.__t = Thread(target=self.__routine__)
         self.customer_id = customer_id
+        self.beginServedEvt = Event()
 
     def start(self):
         self.__t.start()
@@ -40,9 +41,11 @@ class CustomerType1(Customer):
     def __routine__(self):
         time.sleep(5)
         stations[0].enqueue(self)
+        self.beginServedEvt.wait()
         stations[0].endServeEvt.wait()
         time.sleep(5)
         stations[2].enqueue(self)
+        self.beginServedEvt.wait()
         stations[2].endServeEvt.wait()
         print(self.description() + " ist fertig\n")
 
@@ -57,6 +60,7 @@ class CustomerType2(Customer):
     def __routine__(self):
         time.sleep(10)
         stations[1].enqueue(self)
+        self.beginServedEvt.wait()
         stations[1].endServeEvt.wait()
         print(self.description() + " ist fertig\n")
 
@@ -79,7 +83,9 @@ class Station:
         print(customer.description() + " bei " + self.description + " eingereiht\n")
 
     def dequeue(self):
-        return self.__customer_queue__.get()
+        customer = self.__customer_queue__.get()
+        customer.beginServedEvt.set()
+        return customer
 
     def queue_length(self):
         return len(self.__customer_queue__)
