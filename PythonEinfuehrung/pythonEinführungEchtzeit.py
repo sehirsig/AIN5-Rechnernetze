@@ -86,7 +86,8 @@ class Station:
     def enqueue(self, customer):
         self.__customer_queue__.put(customer)
         self.enqueue_Evt.set()
-        print(customer.description() + " bei " + self.description + " eingereiht\n")
+        print(customer.description() + " bei " + self.description + " eingereiht; Warteschlange: "
+              + str(self.__customer_queue__.qsize()) + "\n")
 
     def dequeue(self):
         customer = self.__customer_queue__.get()
