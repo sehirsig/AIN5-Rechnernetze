@@ -103,6 +103,7 @@ class Station:
 
     def __routine__(self):
         while True:
+            self.enqueue_Evt.clear()
             while self.queue_is_empty():
                 self.enqueue_Evt.wait()
             customer = self.dequeue()
