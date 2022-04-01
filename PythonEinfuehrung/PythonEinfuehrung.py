@@ -1,16 +1,15 @@
 import heapq
-from threading import Lock
+from threading import Lock, Thread
+import time
 
 #Idee
 # Nur Kunden rufen die Ereignisliste auf, neue Ereignisse.
 # Die Stationen bekommen wir aus der Liste des Kunden, und können von da deren Methoden aufrufen
 
 
-time = 0
-ereignisnummer = 0
-
 queuePushLock = Lock()
 queuePopLock = Lock()
+
 
 # Konstanten für Ereignisse
 CUSTOMER_ENTRANCE = 0
@@ -24,12 +23,28 @@ STATION_FINISHED = 5
 kunde_zwischen_stationen = []
 
 
+zeitSkalierung = 0.2 # 1 = normal -> 0.5 doppelt so schnell
+
+class timer:
+    def __init__(self):
+        self.__t = Thread(target=self.__routine__)
+
+    zeit = 0
+    def __routine__(self):
+        while (self.zeit < supermarkt.maxSimulationsZeit):
+            time.sleep(1 * zeitSkalierung)
+            self.zeit = self.zeit + 1
+
+    def start(self):
+        self.__t.start()
+
 class Ereignisliste:
-    simulationszeit = 0
+    maxSimulationsZeit = 0
     ereignisnummer = 0
+    uhr = None
 
     def __init__(self, s, e):
-        self.simulationszeit = s
+        self.maxSimulationsZeit = s
         self.ereignisnummer = e
         self.queue = []
 
@@ -48,9 +63,23 @@ class Ereignisliste:
         return len(self.queue) == 0
 
     def start(self):  # Startet die Simulation
+        self.uhr = timer()
+        self.uhr.start()
         while not self.isEmpty():
+
+            if (self.uhr.zeit == self.maxSimulationsZeit): # Wenn maximale Simulationszeit erreicht, beenden.
+                return;
+
             tuple, caller = self.pop()
             d, e, f, g, h = tuple #(ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
+
+
+            if (self.uhr.zeit != d):
+                while d > self.uhr.zeit:
+                    if (self.uhr.zeit == self.maxSimulationsZeit):  # Wenn maximale Simulationszeit erreicht, beenden.
+                        return;
+                    time.sleep(0.45 * zeitSkalierung)
+
             if (isinstance(caller, KundIn)): # Wenn der Aufrufer ein KundIn ist. Muss immer Kunde sein, sonnst klappt heapQueue nicht!
                 caller.sagHallo()
                 #TESTEN, welche Ereignisfunktion
@@ -69,8 +98,6 @@ class Ereignisliste:
                 elif g == STATION_FINISHED:
                     station_temp = caller.liste[0][0]
                     station_temp.fertig(caller)
-                else:
-                    rr = 2 #Just a Blank, nothing for use
 
                 #print(caller)
                 #print(d)
@@ -78,8 +105,6 @@ class Ereignisliste:
                 #print(f)
                 #print(g)
                 #print(h)
-        # Simulationszeit schreitet voran
-        ereignisListe.simulationszeit+=1
 
 
 class KundIn:
@@ -96,21 +121,22 @@ class KundIn:
 
     def ankunft_station(self):  # Ereignis kreiren
         self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann Zuende
-        ereignisListe.push(((4,4,4,4,4), self)) # Debug/Test Push
+        supermarkt.push(((supermarkt.uhr.zeit,2,supermarkt.ereignisnummer,CUSTOMER_ARRIVE,0), self)) # Debug/Test Push
+        supermarkt.ereignisnummer += 1
         # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen (liste pop)
 
     def verlassen_station(self):  # Ereignis kreiren, Eintrag in Eventliste wann nächste Ankunft
         self.liste.pop()
 
     def sagHallo(self):
-        print("Ich bin ein Kunde")
+        print(f"Ich bin ein Kunde um die Zeit {supermarkt.uhr.zeit}")
 
     def einkaufen(self): pass
 
     def wechseln(self): pass
 
     def einkauf_beendet(self):
-        ereignisListe.simulationszeit == self.bedientBis
+        supermarkt.zeit == self.bedientBis
 
 
 class KundeTyp1(KundIn):
@@ -172,16 +198,19 @@ class Station:
         return self.aktuellerKunde.einkaufBeendet()
 
 
-ereignisListe = Ereignisliste(150, 0)
+
+#Supermark initialisieren
+supermarkt = Ereignisliste(120,20)
+
 # Stationen
 # Bäcker
-baecker = Station(10, ereignisListe)
+baecker = Station(10, supermarkt)
 # Wursttheke
-wursttheke = Station(30, ereignisListe)
+wursttheke = Station(30, supermarkt)
 # Käsetheke
-kaesetheke = Station(60, ereignisListe)
+kaesetheke = Station(60, supermarkt)
 # Kasse
-kasse = Station(5, ereignisListe)
+kasse = Station(5, supermarkt)
 
 
 # Typ 1 (Station(Bediendauer), T, W, N)
@@ -199,17 +228,22 @@ typ2 = list(((wursttheke, 30, 5, 2), (kasse, 30, 20, 3), (baecker, 20, 20, 3)))
 
 typ1kunde1 = KundIn(typ1)
 typ2kunde1 = KundIn(typ2)
+typ1kunde2 = KundIn(typ1)
+typ2kunde2 = KundIn(typ2)
 
 # Ereignis = (ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
 # Ein Ereignis ist ein 5-Tupel
-ereignis1 = ((1, 2, 3, 1, 5), typ1kunde1)
-ereignis2 = ((2, 2, 3, 2, 5), typ1kunde1)
-ereignis3 = ((6, 7, 8, 9, 10), typ2kunde1)
+ereignis1 = ((0, 3, 1, CUSTOMER_ENTRANCE, 5), typ1kunde1)
+ereignis2 = ((30, 3, 2, CUSTOMER_ENTRANCE, 5), typ1kunde2)
+ereignis3 = ((1, 3, 3, CUSTOMER_ENTRANCE, 10), typ2kunde1)
+ereignis4 = ((61, 3, 4, CUSTOMER_ENTRANCE, 10), typ2kunde2)
 
-a = Ereignisliste(20, 20)
 
-a.push(ereignis1)
-a.push(ereignis2)
-a.push(ereignis3)
+if __name__ == '__main__':
+    supermarkt.push(ereignis1)
+    supermarkt.push(ereignis2)
+    supermarkt.push(ereignis3)
+    supermarkt.push(ereignis4)
+    supermarkt.start()
 
-a.start()
+
