@@ -2,17 +2,23 @@ import time
 from threading import Thread, Event
 from queue import Queue
 
+class CustomerSpawner:
+    def __init__(self):
+        self.__t = Thread(target=self.__routine__)
 
-def spawn_customers():
-    customer_id_type1 = 0
-    customer_id_type2 = 0
-    for i in range(10):
-        time.sleep(1)
-        CustomerType1(customer_id_type1).start()
-        customer_id_type1 += 1
-        time.sleep(1)
-        CustomerType2(customer_id_type2).start()
-        customer_id_type2 += 1
+    def __routine__(self):
+        customer_id_type1 = 0
+        customer_id_type2 = 0
+        for i in range(10):
+            time.sleep(1)
+            CustomerType1(customer_id_type1).start()
+            customer_id_type1 += 1
+            time.sleep(1)
+            CustomerType2(customer_id_type2).start()
+            customer_id_type2 += 1
+
+    def start(self):
+        self.__t.start()
 
 
 class Customer:
@@ -113,5 +119,5 @@ if __name__ == '__main__':
     for s in stations:
         s.start()
 
-    customerSpawner = Thread(target=spawn_customers)
+    customerSpawner = CustomerSpawner()
     customerSpawner.start()
