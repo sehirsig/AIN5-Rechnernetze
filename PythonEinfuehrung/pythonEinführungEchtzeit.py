@@ -2,6 +2,7 @@ import time
 from threading import Thread, Event
 from queue import Queue
 
+
 class CustomerSpawner:
     def __init__(self):
         self.__t = Thread(target=self.__routine__)
