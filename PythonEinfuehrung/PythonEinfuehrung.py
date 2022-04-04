@@ -19,10 +19,6 @@ STATION_QUEUE = 3
 STATION_SERVE = 4
 STATION_FINISHED = 5
 
-#Tupel (Kunde,ZeitpunktVerlassen,letzteStation)
-kunde_zwischen_stationen = []
-
-
 zeitSkalierung = 0.2 # 1 = normal -> 0.5 doppelt so schnell
 
 class timer:
@@ -68,6 +64,7 @@ class Ereignisliste:
         while not self.isEmpty():
 
             if (self.uhr.zeit == self.maxSimulationsZeit): # Wenn maximale Simulationszeit erreicht, beenden.
+                print("Time over.")
                 return;
 
             tuple, caller = self.pop()
@@ -81,7 +78,7 @@ class Ereignisliste:
                     time.sleep(0.45 * zeitSkalierung)
 
             if (isinstance(caller, KundIn)): # Wenn der Aufrufer ein KundIn ist. Muss immer Kunde sein, sonnst klappt heapQueue nicht!
-                caller.sagHallo()
+                #caller.sagHallo()
                 #TESTEN, welche Ereignisfunktion
                 if g == CUSTOMER_ENTRANCE:
                     caller.beginn_einkauf()
@@ -90,13 +87,13 @@ class Ereignisliste:
                 elif g == CUSTOMER_EXIT:
                     caller.verlassen_station()
                 elif g == STATION_QUEUE:
-                    station_temp = caller.liste[0][0]
+                    station_temp = caller.curStation
                     station_temp.anstellen(caller)
                 elif g == STATION_SERVE:
-                    station_temp = caller.liste[0][0]
+                    station_temp = caller.curStation
                     station_temp.bedienen()
                 elif g == STATION_FINISHED:
-                    station_temp = caller.liste[0][0]
+                    station_temp = caller.curStation
                     station_temp.fertig(caller)
 
                 #print(caller)
@@ -109,27 +106,52 @@ class Ereignisliste:
 
 class KundIn:
     liste = list()
+    curStation = 0 #(Station(Bediendauer), T, W, N)
+    curBediendauer = 0
+    curT = 0
+    curW = 0
+    curN = 0
 
     def __init__(self, stationenTupleListe):  # Liste aus Tuplen mit List((Station, T, W, N), (Station, T, W, N), ... )
         self.liste = list(stationenTupleListe)
-        self.aufenthalt = None
-        self.bedientBis = None
+
 
     def beginn_einkauf(self):  # Ereignis kreiren
         if self.liste:  # Wenn Liste nicht Leer ist
-            self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann nächste Ankunft
+            self.curStation, self.curT, self.curW, self.curN = self.liste.pop(0)
+            self.curBediendauer = self.curStation.Bediendauer
+            print(str(supermarkt.uhr.zeit) + "::  " "Kunde " + str(self) + " beginnt den Einkauf um " + str(supermarkt.uhr.zeit))
+            print("Station: " + str(self.curStation)) # Abarbeitung, Eintrag in Eventliste wann nächste Ankunft
+            print("T: " + str(self.curT)) # Zeit T die der Kunde benötigt um von Station y zu Station x zu kommen.
+            print("W: " + str(self.curW)) # Ab welcher Wartenschlangenlänge W der Kunde die Station x auslässt
+            print("N: " + str(self.curN)) # Anzahl der Einkäufe N, die Kunde an Station x tätigt.
+            print("Bediendauer: " + str(self.curBediendauer))
+            print("-----------------------")
+
+            supermarkt.ereignisnummer += 1
+            neuesEreignis = ((supermarkt.uhr.zeit + self.curT, supermarkt.ereignisnummer, 1, CUSTOMER_ARRIVE, 5), self)
+            supermarkt.push(neuesEreignis)
 
     def ankunft_station(self):  # Ereignis kreiren
         self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann Zuende
-        supermarkt.push(((supermarkt.uhr.zeit,2,supermarkt.ereignisnummer,CUSTOMER_ARRIVE,0), self)) # Debug/Test Push
-        supermarkt.ereignisnummer += 1
-        # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen (liste pop)
+        print(str(supermarkt.uhr.zeit) + "::  " + str(self) + "um " + str(supermarkt.uhr.zeit) + " an Station " + str(Station) + " angekommen")
+        print("-----------------------")
+        #supermarkt.push(((supermarkt.uhr.zeit,2,supermarkt.ereignisnummer,CUSTOMER_ARRIVE,0), self)) # Debug/Test Push
+        #supermarkt.ereignisnummer += 1
+        # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen
+        if (len(self.curStation.queue) <= int(self.curW)): #überprüfen ob queue nicht zu lange
+            supermarkt.ereignisnummer += 1
+            neuesEreignis = ((supermarkt.uhr.zeit, supermarkt.ereignisnummer, 1, STATION_QUEUE, self.curN), self)
+            supermarkt.push(neuesEreignis)
+        else:
+            pass#auslassen und nächste station ansteuern. TODO
 
     def verlassen_station(self):  # Ereignis kreiren, Eintrag in Eventliste wann nächste Ankunft
-        self.liste.pop()
+        #self.liste.pop()
+        pass
 
     def sagHallo(self):
-        print(f"Ich bin ein Kunde um die Zeit {supermarkt.uhr.zeit}")
+        print(str(supermarkt.uhr.zeit) + "::  Ich bin ein Kunde " + str(self) + " um die Zeit " + str(supermarkt.uhr.zeit))
 
     def einkaufen(self): pass
 
@@ -139,34 +161,7 @@ class KundIn:
         supermarkt.zeit == self.bedientBis
 
 
-class KundeTyp1(KundIn):
-    def __init__(self, stationenTupleListe):
-        KundIn.__init__(stationenTupleListe)
-
-    def einkaufen(self):
-        print()
-
-    def wechseln(self):
-        print()
-
-
-class KundeTyp2(KundIn):
-    def __init__(self, stationenTupleListe):
-        KundIn.__init__(stationenTupleListe)
-
-    def einkaufen(self):
-        print()
-
-    def wechseln(self):
-        print()
-
-
-#Station Status
-STATION_IDLE = 0
-STATION_BUSY = 1
-
 class Station:
-    station_status = STATION_IDLE
     queue = list()
     Bediendauer = 0
 
@@ -178,21 +173,23 @@ class Station:
 
     def anstellen(self, KundIn):  # Add to queue
         self.queue.append(KundIn)
+        print(str(supermarkt.uhr.zeit) + "::  " + str(KundIn) + " stellt sich um " + str(supermarkt.uhr.zeit) + " bei " + str(self) + " als " + str(len(self.queue)) + " an.")
+        print("-----------------------")
         #Ereignis wann der Kunde bedient wird.
 
     def bedienen(self):
         self.aktuellerKunde = self.queue.pop()
-        self.station_status = STATION_BUSY
 
     def fertig(self, KundIn):  # Delete like FIFO
         # Abarbeitung
         global time
         self.ereignisliste.push((time, 0, 0, 0, 0))
-        if (self.isEmpty()):
-            self.station_status = STATION_IDLE
 
     def isEmpty(self):
         return len(self.queue) == 0
+
+    def getQueueLength(self):
+        return len(self.queue)
 
     def istFertig(self):
         return self.aktuellerKunde.einkaufBeendet()
@@ -218,13 +215,20 @@ kasse = Station(5, supermarkt)
 # Wursttheke (wursttheke, 30, 10, 5)
 # Käsetheke (kaesetheke, 45, 5, 3)
 # Kasse (kasse, 60, 20, 30)
-typ1 = list(((baecker, 10, 10, 10), (wursttheke, 30, 10, 5), (kaesetheke, 45, 5, 3), (kasse, 60, 20, 30)))
+typ1 = list()
+typ1.append((baecker, 10, 10, 10))
+typ1.append((wursttheke, 30, 10, 5))
+typ1.append((kaesetheke, 45, 5, 3))
+typ1.append((kasse, 60, 20, 30))
 
 # Typ 2 (Station(Bediendauer), T, W, N)
 # Wursttheke (wursttheke, 30, 5, 2)
 # Kasse (kasse, 30, 20, 3)
 # Bäcker (baecker, 20, 20, 3)
-typ2 = list(((wursttheke, 30, 5, 2), (kasse, 30, 20, 3), (baecker, 20, 20, 3)))
+typ2 = list()
+typ2.append((wursttheke, 30, 5, 2))
+typ2.append((kasse, 30, 20, 3))
+typ2.append((baecker, 20, 20, 3))
 
 typ1kunde1 = KundIn(typ1)
 typ2kunde1 = KundIn(typ2)
@@ -244,6 +248,7 @@ if __name__ == '__main__':
     supermarkt.push(ereignis4)
     supermarkt.push(ereignis1)
     supermarkt.push(ereignis2)
+    supermarkt.ereignisnummer = 4
     supermarkt.start()
 
 
