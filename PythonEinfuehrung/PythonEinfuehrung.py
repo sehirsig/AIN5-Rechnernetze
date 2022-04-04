@@ -240,10 +240,10 @@ ereignis4 = ((61, 3, 4, CUSTOMER_ENTRANCE, 10), typ2kunde2)
 
 
 if __name__ == '__main__':
-    supermarkt.push(ereignis1)
-    supermarkt.push(ereignis2)
     supermarkt.push(ereignis3)
     supermarkt.push(ereignis4)
+    supermarkt.push(ereignis1)
+    supermarkt.push(ereignis2)
     supermarkt.start()
 
 
