@@ -153,12 +153,6 @@ class KundIn:
     def sagHallo(self):
         print(str(supermarkt.uhr.zeit) + "::  Ich bin ein Kunde " + str(self) + " um die Zeit " + str(supermarkt.uhr.zeit))
 
-    def einkaufen(self): pass
-
-    def wechseln(self): pass
-
-    def einkauf_beendet(self):
-        supermarkt.zeit == self.bedientBis
 
 
 class Station:
@@ -185,14 +179,6 @@ class Station:
         global time
         self.ereignisliste.push((time, 0, 0, 0, 0))
 
-    def isEmpty(self):
-        return len(self.queue) == 0
-
-    def getQueueLength(self):
-        return len(self.queue)
-
-    def istFertig(self):
-        return self.aktuellerKunde.einkaufBeendet()
 
 
 
