@@ -2,7 +2,7 @@ import time
 from threading import Thread, Event
 from queue import Queue
 
-
+TIME_FACTOR = 1
 class CustomerSpawner:
     def __init__(self):
         self.__t = Thread(target=self.__routine__)
@@ -12,15 +12,15 @@ class CustomerSpawner:
         customer_id_type2 = 0
         for i in range(400):
             print("Zeit: " + str(i))
-            if ((customer_id_type1 * 200) == i):
+            if (customer_id_type1 * 200) == i:
                 print(f"Typ 1 Kunde {customer_id_type1 + 1} spawned at {i}")
                 CustomerType1(customer_id_type1).start()
                 customer_id_type1 += 1
-            if (((customer_id_type2 * 60) + 1) == i):
+            if ((customer_id_type2 * 60) + 1) == i:
                 print(f"Typ 2 Kunde {customer_id_type2 + 1} spawned at {i}")
                 CustomerType2(customer_id_type2).start()
                 customer_id_type2 += 1
-            time.sleep(1)
+            time.sleep(1 * TIME_FACTOR)
 
     def start(self):
         self.__t.start()
@@ -31,6 +31,7 @@ class Customer:
         self.__t = Thread(target=self.__routine__)
         self.customer_id = customer_id
         self.beginServedEvt = Event()
+        self.__number_of_items = 1
 
     def start(self):
         self.__t.start()
@@ -43,6 +44,9 @@ class Customer:
 
     def description(self):
         return "Kunde " + str(self.type()) + "-" + str(self.customer_id)
+
+    def getNumberOfItems(self):
+        return self.__number_of_items
 
 
 class CustomerType1(Customer):
@@ -80,13 +84,14 @@ class CustomerType2(Customer):
 
 
 class Station:
-    def __init__(self, description):
+    def __init__(self, description, time_per_item):
         self.description = description
         self.__current_customer__ = None
         self.__customer_queue__ = Queue()
         self.enqueue_Evt = Event()
         self.endServeEvt = Event()
         self.__t = Thread(target=self.__routine__)
+        self.time_per_item = time_per_item
 
     def enqueue(self, customer):
         self.__customer_queue__.put(customer)
@@ -112,7 +117,7 @@ class Station:
                 self.enqueue_Evt.wait()
             customer = self.dequeue()
             print(customer.description() + " wird bei " + self.description + " bedient\n")
-            time.sleep(10)
+            time.sleep(self.time_per_item * customer.getNumberOfItems())
             print(customer.description() + " verlässt " + self.description + "\n")
             self.endServeEvt.set()
 
@@ -120,7 +125,7 @@ class Station:
         self.__t.start()
 
 
-stations = [Station("Bäcker"), Station("Wursttheke"), Station("Käsetheke"), Station("Kasse")]
+stations = [Station("Bäcker", 10), Station("Wursttheke", 30), Station("Käsetheke", 60), Station("Kasse", 5)]
 
 if __name__ == '__main__':
     for s in stations:
