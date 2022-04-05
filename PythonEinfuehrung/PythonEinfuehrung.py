@@ -14,11 +14,10 @@ queuePopLock = Lock()
 # Konstanten für Ereignisse
 CUSTOMER_ENTRANCE = 0
 CUSTOMER_ARRIVE = 1
-CUSTOMER_EXIT = 2
-STATION_QUEUE = 3
-STATION_FINISHED = 4
+STATION_QUEUE = 2
+STATION_FINISHED = 3
 
-zeitSkalierung = 0.2 # 1 = normal -> 0.5 doppelt so schnell
+zeitSkalierung = 0.05 # 1 = normal -> 0.5 doppelt so schnell
 
 class timer:
     def __init__(self):
@@ -66,11 +65,20 @@ class Ereignisliste:
             if (self.uhr.zeit == self.maxSimulationsZeit): # Wenn maximale Simulationszeit erreicht, beenden.
                 print("Time over.")
                 print("-----------------------")
+                print("Rest:")
+                while not self.isEmpty():
+                    popped = self.pop()
+                    print(popped)
+
                 return;
 
             if (self.ereignisnummer == self.maxEreignisnummer):
                 print("Ereignisnummer maximum reached.")
                 print("-----------------------")
+                print("Rest:")
+                while not self.isEmpty():
+                    popped = self.pop()
+                    print(popped)
                 return;
 
             d, e, f, g, caller = self.pop() #(ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
@@ -79,6 +87,10 @@ class Ereignisliste:
             if (self.uhr.zeit != d):
                 while d > self.uhr.zeit:
                     if (self.uhr.zeit == self.maxSimulationsZeit):  # Wenn maximale Simulationszeit erreicht, beenden.
+                        print("Rest:")
+                        while not self.isEmpty():
+                            popped = self.pop()
+                            print(popped)
                         return;
                     time.sleep(0.45 * zeitSkalierung)
 
@@ -89,14 +101,13 @@ class Ereignisliste:
                     caller.beginn_einkauf()
                 elif g == CUSTOMER_ARRIVE:
                     caller.ankunft_station()
-                elif g == CUSTOMER_EXIT:
-                    caller.verlassen_station()
                 elif g == STATION_QUEUE:
                     station_temp = caller.curStation
                     station_temp.anstellen(caller)
                 elif g == STATION_FINISHED:
                     station_temp = caller.curStation
                     station_temp.fertig(caller)
+                    caller.verlassen_station()
 
                 #print(caller)
                 #print(d)
@@ -133,7 +144,7 @@ class KundIn:
             print("-----------------------")
 
             supermarkt.ereignisnummer += 1
-            neuesEreignis = (supermarkt.uhr.zeit + self.curT, supermarkt.ereignisnummer, 1, CUSTOMER_ARRIVE, self)
+            neuesEreignis = (supermarkt.uhr.zeit + self.curT, 3, supermarkt.ereignisnummer, CUSTOMER_ARRIVE, self)
             supermarkt.push(neuesEreignis)
 
     def ankunft_station(self):  # Ereignis kreiren
@@ -145,13 +156,13 @@ class KundIn:
         # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen
         if (len(self.curStation.queue) <= int(self.curW)): #überprüfen ob queue nicht zu lange
             supermarkt.ereignisnummer += 1
-            neuesEreignis = (supermarkt.uhr.zeit, supermarkt.ereignisnummer, 1, STATION_QUEUE, self)
+            neuesEreignis = (supermarkt.uhr.zeit, 1, supermarkt.ereignisnummer, STATION_QUEUE, self)
             supermarkt.push(neuesEreignis)
         else:
             self.curStation, self.curT, self.curW, self.curN = self.liste.pop(0)
             self.curBediendauer = self.curStation.bediendauer
             supermarkt.ereignisnummer += 1
-            neuesEreignis = (supermarkt.uhr.zeit + self.curT, supermarkt.ereignisnummer, 1, CUSTOMER_ARRIVE, self)
+            neuesEreignis = (supermarkt.uhr.zeit + self.curT, 3, supermarkt.ereignisnummer, CUSTOMER_ARRIVE, self)
             print(str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " geht jetzt um " + str(
                 supermarkt.uhr.zeit) + " zur Station " + str(self.curStation.name))
             print("-----------------------")
@@ -165,7 +176,7 @@ class KundIn:
             self.curStation, self.curT, self.curW, self.curN = self.liste.pop(0)
             self.curBediendauer = self.curStation.bediendauer
             supermarkt.ereignisnummer += 1
-            neuesEreignis = (supermarkt.uhr.zeit + self.curT, supermarkt.ereignisnummer, 1, CUSTOMER_ARRIVE, self)
+            neuesEreignis = (supermarkt.uhr.zeit + self.curT, 3, supermarkt.ereignisnummer, CUSTOMER_ARRIVE, self)
             print(str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " geht jetzt um " + str(
                 supermarkt.uhr.zeit) + " zur Station " + str(self.curStation.name))
             print("-----------------------")
@@ -192,15 +203,9 @@ class Station:
         print(str(supermarkt.uhr.zeit) + "::  " + str(KundIn.name) + " stellt sich um " + str(supermarkt.uhr.zeit) + " bei " + str(self.name) + " als " + str(len(self.queue)) + " an.")
         print("-----------------------")
         supermarkt.ereignisnummer += 1
-        neuesEreignis = (supermarkt.uhr.zeit + (self.bediendauer * int(KundIn.curN)), supermarkt.ereignisnummer, 1, STATION_FINISHED, KundIn)
+        neuesEreignis = (supermarkt.uhr.zeit + (self.bediendauer * int(KundIn.curN)), 2, supermarkt.ereignisnummer, STATION_FINISHED, KundIn)
         supermarkt.push(neuesEreignis)
         #Ereignis wann der Kunde bedient wird.
-
-    def bedienen(self):
-        aktuellerKunde = self.queue.pop()
-        supermarkt.ereignisnummer += 1
-        neuesEreignis = (supermarkt.uhr.zeit + self.bediendauer, supermarkt.ereignisnummer, 1, STATION_FINISHED, aktuellerKunde)
-        supermarkt.push(neuesEreignis)
 
     def fertig(self, KundIn):
         # Abarbeitung
@@ -208,13 +213,12 @@ class Station:
         print(str(supermarkt.uhr.zeit) + "::  " + str(KundIn.name) + " wurde um " + str(
             supermarkt.uhr.zeit) + " bei " + str(self.name) + " fertig bedient")
         print("-----------------------")
-        KundIn.verlassen_station()
 
 
 
 
 #Supermark initialisieren
-maximalZeit = 347
+maximalZeit = 350
 maximalEreignis = 300
 supermarkt = Ereignisliste(maximalZeit,maximalEreignis)
 
@@ -263,7 +267,7 @@ def customerSpawner(maxZeit):
         typ1Kunde = KundIn(typ1, f"Kunde {anzahlTyp1} Typ 1")
         # Ereignis = (ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
         # Ein Ereignis ist ein 5-Tupel
-        neuesEreignis = (startTyp1, supermarkt.ereignisnummer, 3, CUSTOMER_ENTRANCE, typ1Kunde)
+        neuesEreignis = (startTyp1, supermarkt.ereignisnummer, 1, CUSTOMER_ENTRANCE, typ1Kunde)
         startTyp1 += abstandTyp1
         supermarkt.push(neuesEreignis)
 
@@ -271,7 +275,7 @@ def customerSpawner(maxZeit):
         supermarkt.ereignisnummer += 1
         anzahlTyp2 += 1
         typ2Kunde = KundIn(typ2, f"Kunde {anzahlTyp2} Typ 2")
-        neuesEreignis = (startTyp2, supermarkt.ereignisnummer, 3, CUSTOMER_ENTRANCE, typ2Kunde)
+        neuesEreignis = (startTyp2, supermarkt.ereignisnummer, 1, CUSTOMER_ENTRANCE, typ2Kunde)
         startTyp2 += abstandTyp2
         supermarkt.push(neuesEreignis)
 
