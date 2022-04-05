@@ -3,6 +3,8 @@ from threading import Thread, Event
 from queue import Queue
 
 TIME_FACTOR = 1
+
+
 class CustomerSpawner:
     def __init__(self):
         self.__t = Thread(target=self.__routine__)
@@ -27,17 +29,31 @@ class CustomerSpawner:
 
 
 class Customer:
-    def __init__(self, customer_id):
+    def __init__(self, customer_id, station_tuple_list):
         self.__t = Thread(target=self.__routine__)
         self.customer_id = customer_id
         self.beginServedEvt = Event()
         self.__number_of_items = 1
+        self.station_tuple_list = station_tuple_list
 
     def start(self):
         self.__t.start()
 
     def __routine__(self):
-        pass
+        for e in self.station_tuple_list:
+            STATION = e[0]
+            QUEUE_LENGTH = e[2]
+            WAY_TO_STATION = e[3]
+            self.__number_of_items = e[3]
+
+            time.sleep(WAY_TO_STATION)
+            if STATION.queue_length() < QUEUE_LENGTH:
+                STATION.enqueue(self)
+                self.beginServedEvt.wait()
+                STATION.endServeEvt.wait()
+            else:
+                print(self.description() + " lässt die Station " + STATION.description + "aus\n")
+            print(self.description() + " ist fertig\n")
 
     def type(self):
         pass
@@ -49,20 +65,12 @@ class Customer:
         return self.__number_of_items
 
 
+# tuple: (station, way to station, may queue length, number of items)
+
 class CustomerType1(Customer):
     def __init__(self, customer_id):
-        Customer.__init__(self, customer_id)
-
-    def __routine__(self):
-        time.sleep(10.4)
-        stations[0].enqueue(self)
-        self.beginServedEvt.wait()
-        stations[0].endServeEvt.wait()
-        time.sleep(5)
-        stations[2].enqueue(self)
-        self.beginServedEvt.wait()
-        stations[2].endServeEvt.wait()
-        print(self.description() + " ist fertig\n")
+        Customer.__init__(self, customer_id,
+                          [(stations[0], 10, 10, 10), (stations[1], 30, 10, 5), (stations[2], 45, 5, 3), (stations[3], 60, 20, 30)])
 
     def type(self):
         return 1
@@ -70,14 +78,8 @@ class CustomerType1(Customer):
 
 class CustomerType2(Customer):
     def __init__(self, customer_id):
-        Customer.__init__(self, customer_id)
-
-    def __routine__(self):
-        time.sleep(30)
-        stations[1].enqueue(self)
-        self.beginServedEvt.wait()
-        stations[1].endServeEvt.wait()
-        print(self.description() + " ist fertig\n")
+        Customer.__init__(self, customer_id,
+                          [(stations[1], 30, 5, 2), (stations[3], 30, 20, 3), (stations[0], 20, 20, 3)])
 
     def type(self):
         return 2
@@ -105,7 +107,7 @@ class Station:
         return customer
 
     def queue_length(self):
-        return len(self.__customer_queue__)
+        return self.__customer_queue__.qsize()
 
     def queue_is_empty(self):
         return self.__customer_queue__.empty()
