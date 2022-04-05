@@ -13,15 +13,17 @@ class CustomerSpawner:
         customer_id_type1 = 0
         customer_id_type2 = 0
         for i in range(400):
-            print("Zeit: " + str(i))
+            print("Zeit: " + str(i) + "\n")
             if (customer_id_type1 * 200) == i:
-                print(f"Typ 1 Kunde {customer_id_type1 + 1} spawned at {i}")
-                CustomerType1(customer_id_type1).start()
+                c = CustomerType1(customer_id_type1)
                 customer_id_type1 += 1
+                c.start()
+                print(c.description() + " betritt den Supermarkt\n")
             if ((customer_id_type2 * 60) + 1) == i:
-                print(f"Typ 2 Kunde {customer_id_type2 + 1} spawned at {i}")
-                CustomerType2(customer_id_type2).start()
+                c = CustomerType2(customer_id_type2)
                 customer_id_type2 += 1
+                c.start()
+                print(c.description() + " betritt den Supermarkt\n")
             time.sleep(1 * TIME_FACTOR)
 
     def start(self):
@@ -42,8 +44,8 @@ class Customer:
     def __routine__(self):
         for e in self.station_tuple_list:
             STATION = e[0]
+            WAY_TO_STATION = e[1]
             QUEUE_LENGTH = e[2]
-            WAY_TO_STATION = e[3]
             self.__number_of_items = e[3]
 
             time.sleep(WAY_TO_STATION)
@@ -54,6 +56,7 @@ class Customer:
             else:
                 print(self.description() + " lässt die Station " + STATION.description + "aus\n")
             print(self.description() + " ist fertig\n")
+        print(self.description() + "verlässt den Supermarkt\n")
 
     def type(self):
         pass
@@ -61,7 +64,7 @@ class Customer:
     def description(self):
         return "Kunde " + str(self.type()) + "-" + str(self.customer_id)
 
-    def getNumberOfItems(self):
+    def get_number_of_items(self):
         return self.__number_of_items
 
 
@@ -119,7 +122,7 @@ class Station:
                 self.enqueue_Evt.wait()
             customer = self.dequeue()
             print(customer.description() + " wird bei " + self.description + " bedient\n")
-            time.sleep(self.time_per_item * customer.getNumberOfItems())
+            time.sleep(self.time_per_item * customer.get_number_of_items())
             print(customer.description() + " verlässt " + self.description + "\n")
             self.endServeEvt.set()
 
