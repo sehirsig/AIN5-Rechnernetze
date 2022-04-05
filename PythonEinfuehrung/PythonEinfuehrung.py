@@ -109,18 +109,11 @@ class Ereignisliste:
                     station_temp.fertig(caller)
                     caller.verlassen_station()
 
-                #print(caller)
-                #print(d)
-                #print(e)
-                #print(f)
-                #print(g)
-                #print(h)
-
 
 class KundIn:
     name = ""
     liste = list()
-    curStation = 0 #(Station(Bediendauer), T, W, N)
+    curStation = None
     curBediendauer = 0
     curT = 0
     curW = 0
@@ -151,8 +144,6 @@ class KundIn:
         self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann Zuende
         print(str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " um " + str(supermarkt.uhr.zeit) + " an Station " + str(self.curStation.name) + " angekommen")
         print("-----------------------")
-        #supermarkt.push(((supermarkt.uhr.zeit,2,supermarkt.ereignisnummer,CUSTOMER_ARRIVE,0), self)) # Debug/Test Push
-        #supermarkt.ereignisnummer += 1
         # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen
         if (len(self.curStation.queue) <= int(self.curW)): #überprüfen ob queue nicht zu lange
             supermarkt.ereignisnummer += 1
