@@ -42,6 +42,7 @@ class Customer:
         self.__t.start()
 
     def __routine__(self):
+        time.sleep(0.3) #To be within the second
         for e in self.station_tuple_list:
             STATION = e[0]
             WAY_TO_STATION = e[1]
