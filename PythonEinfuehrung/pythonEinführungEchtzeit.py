@@ -10,13 +10,17 @@ class CustomerSpawner:
     def __routine__(self):
         customer_id_type1 = 0
         customer_id_type2 = 0
-        for i in range(10):
+        for i in range(400):
+            print("Zeit: " + str(i))
+            if ((customer_id_type1 * 200) == i):
+                print(f"Typ 1 Kunde {customer_id_type1 + 1} spawned at {i}")
+                CustomerType1(customer_id_type1).start()
+                customer_id_type1 += 1
+            if (((customer_id_type2 * 60) + 1) == i):
+                print(f"Typ 2 Kunde {customer_id_type2 + 1} spawned at {i}")
+                CustomerType2(customer_id_type2).start()
+                customer_id_type2 += 1
             time.sleep(1)
-            CustomerType1(customer_id_type1).start()
-            customer_id_type1 += 1
-            time.sleep(1)
-            CustomerType2(customer_id_type2).start()
-            customer_id_type2 += 1
 
     def start(self):
         self.__t.start()
@@ -46,7 +50,7 @@ class CustomerType1(Customer):
         Customer.__init__(self, customer_id)
 
     def __routine__(self):
-        time.sleep(5)
+        time.sleep(10)
         stations[0].enqueue(self)
         self.beginServedEvt.wait()
         stations[0].endServeEvt.wait()
@@ -65,7 +69,7 @@ class CustomerType2(Customer):
         Customer.__init__(self, customer_id)
 
     def __routine__(self):
-        time.sleep(10)
+        time.sleep(30)
         stations[1].enqueue(self)
         self.beginServedEvt.wait()
         stations[1].endServeEvt.wait()
