@@ -50,7 +50,7 @@ class CustomerType1(Customer):
         Customer.__init__(self, customer_id)
 
     def __routine__(self):
-        time.sleep(10)
+        time.sleep(10.4)
         stations[0].enqueue(self)
         self.beginServedEvt.wait()
         stations[0].endServeEvt.wait()
