@@ -129,11 +129,11 @@ class KundIn:
             self.curStation, self.curT, self.curW, self.curN = self.liste.pop(0)
             self.curBediendauer = self.curStation.bediendauer
             print(str(supermarkt.uhr.zeit) + "::  " "Kunde " + str(self.name) + " beginnt den Einkauf um " + str(supermarkt.uhr.zeit))
-            print("Station: " + str(self.curStation.name)) # Abarbeitung, Eintrag in Eventliste wann nächste Ankunft
-            print("T: " + str(self.curT)) # Zeit T die der Kunde benötigt um von Station y zu Station x zu kommen.
-            print("W: " + str(self.curW)) # Ab welcher Wartenschlangenlänge W der Kunde die Station x auslässt
-            print("N: " + str(self.curN)) # Anzahl der Einkäufe N, die Kunde an Station x tätigt.
-            print("Bediendauer: " + str(self.curBediendauer))
+            #print("Station: " + str(self.curStation.name)) # Abarbeitung, Eintrag in Eventliste wann nächste Ankunft
+            #print("T: " + str(self.curT)) # Zeit T die der Kunde benötigt um von Station y zu Station x zu kommen.
+            #print("W: " + str(self.curW)) # Ab welcher Wartenschlangenlänge W der Kunde die Station x auslässt
+            #print("N: " + str(self.curN)) # Anzahl der Einkäufe N, die Kunde an Station x tätigt.
+            #print("Bediendauer: " + str(self.curBediendauer))
             print("-----------------------")
 
             supermarkt.ereignisnummer += 1
@@ -223,11 +223,11 @@ kaesetheke = Station(60, supermarkt, "Käsetheke")
 # Kasse
 kasse = Station(5, supermarkt, "Kasse")
 
-
-# Typ 1 (Station(Bediendauer), T, W, N)
-# Bäcker (baecker, 10, 10, 10)
-# Wursttheke (wursttheke, 30, 10, 5)
-# Käsetheke (kaesetheke, 45, 5, 3)
+#
+## Typ 1 (Station(Bediendauer), T, W, N)
+## Bäcker (baecker, 10, 10, 10)
+## Wursttheke (wursttheke, 30, 10, 5)
+## Käsetheke (kaesetheke, 45, 5, 3)
 # Kasse (kasse, 60, 20, 30)
 typ1 = list()
 typ1.append((baecker, 10, 10, 10))
