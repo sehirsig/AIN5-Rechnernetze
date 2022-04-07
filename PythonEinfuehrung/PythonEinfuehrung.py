@@ -128,7 +128,7 @@ class KundIn:
         if self.liste:  # Wenn Liste nicht Leer ist
             self.curStation, self.curT, self.curW, self.curN = self.liste.pop(0)
             self.curBediendauer = self.curStation.bediendauer
-            print(str(supermarkt.uhr.zeit) + "::  " "Kunde " + str(self.name) + " beginnt den Einkauf um " + str(supermarkt.uhr.zeit))
+            print("Zeit: " + str(supermarkt.uhr.zeit) + "::  " "Kunde " + str(self.name) + " beginnt den Einkauf um " + str(supermarkt.uhr.zeit))
             #print("Station: " + str(self.curStation.name)) # Abarbeitung, Eintrag in Eventliste wann nächste Ankunft
             #print("T: " + str(self.curT)) # Zeit T die der Kunde benötigt um von Station y zu Station x zu kommen.
             #print("W: " + str(self.curW)) # Ab welcher Wartenschlangenlänge W der Kunde die Station x auslässt
@@ -142,7 +142,7 @@ class KundIn:
 
     def ankunft_station(self):  # Ereignis kreiren
         self.liste = self.liste  # Abarbeitung, Eintrag in Eventliste wann Zuende
-        print(str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " um " + str(supermarkt.uhr.zeit) + " an Station " + str(self.curStation.name) + " angekommen")
+        print("Zeit: " + str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " um " + str(supermarkt.uhr.zeit) + " an Station " + str(self.curStation.name) + " angekommen")
         print("-----------------------")
         # Stationsmethode aufrufen um anzustellen, oder wenn zuviel angestellt weiter springen
         if (len(self.curStation.queue) <= int(self.curW)): #überprüfen ob queue nicht zu lange
@@ -154,27 +154,27 @@ class KundIn:
             self.curBediendauer = self.curStation.bediendauer
             supermarkt.ereignisnummer += 1
             neuesEreignis = (supermarkt.uhr.zeit + self.curT, 3, supermarkt.ereignisnummer, CUSTOMER_ARRIVE, self)
-            print(str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " geht jetzt um " + str(
+            print("Zeit: " + str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " geht jetzt um " + str(
                 supermarkt.uhr.zeit) + " zur Station " + str(self.curStation.name))
             print("-----------------------")
             supermarkt.push(neuesEreignis)#auslassen und nächste station ansteuern.
 
     def verlassen_station(self):  # Ereignis kreiren, Eintrag in Eventliste wann nächste Ankunft
         if (len(self.liste) == 0):
-            print(str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " um " + str(supermarkt.uhr.zeit) + " verlässt den Supermarkt.")
+            print("Zeit: " + str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " um " + str(supermarkt.uhr.zeit) + " verlässt den Supermarkt.")
             print("-----------------------")
         else:
             self.curStation, self.curT, self.curW, self.curN = self.liste.pop(0)
             self.curBediendauer = self.curStation.bediendauer
             supermarkt.ereignisnummer += 1
             neuesEreignis = (supermarkt.uhr.zeit + self.curT, 3, supermarkt.ereignisnummer, CUSTOMER_ARRIVE, self)
-            print(str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " geht jetzt um " + str(
+            print("Zeit: " + str(supermarkt.uhr.zeit) + "::  " + str(self.name) + " geht jetzt um " + str(
                 supermarkt.uhr.zeit) + " zur Station " + str(self.curStation.name))
             print("-----------------------")
             supermarkt.push(neuesEreignis)  # auslassen und nächste station ansteuern.
 
     def sagHallo(self):
-        print(str(supermarkt.uhr.zeit) + "::  Ich bin ein Kunde " + str(self.name) + " um die Zeit " + str(supermarkt.uhr.zeit))
+        print("Zeit: " + str(supermarkt.uhr.zeit) + "::  Ich bin ein Kunde " + str(self.name) + " um die Zeit " + str(supermarkt.uhr.zeit))
         print("-----------------------")
 
 
@@ -191,7 +191,7 @@ class Station:
 
     def anstellen(self, KundIn):  # Add to queue
         self.queue.append(KundIn)
-        print(str(supermarkt.uhr.zeit) + "::  " + str(KundIn.name) + " stellt sich um " + str(supermarkt.uhr.zeit) + " bei " + str(self.name) + " als " + str(len(self.queue)) + " an.")
+        print("Zeit: " + str(supermarkt.uhr.zeit) + "::  " + str(KundIn.name) + " stellt sich um " + str(supermarkt.uhr.zeit) + " bei " + str(self.name) + " als " + str(len(self.queue)) + " an.")
         print("-----------------------")
         supermarkt.ereignisnummer += 1
         neuesEreignis = (supermarkt.uhr.zeit + (self.bediendauer * int(KundIn.curN)), 2, supermarkt.ereignisnummer, STATION_FINISHED, KundIn)
@@ -201,7 +201,7 @@ class Station:
     def fertig(self, KundIn):
         # Abarbeitung
         self.queue.pop(0)
-        print(str(supermarkt.uhr.zeit) + "::  " + str(KundIn.name) + " wurde um " + str(
+        print("Zeit: " + str(supermarkt.uhr.zeit) + "::  " + str(KundIn.name) + " wurde um " + str(
             supermarkt.uhr.zeit) + " bei " + str(self.name) + " fertig bedient")
         print("-----------------------")
 
@@ -255,7 +255,7 @@ def customerSpawner(maxZeit):
     while ((int(startTyp1)) < int(maxZeit)):
         supermarkt.ereignisnummer += 1
         anzahlTyp1 += 1
-        typ1Kunde = KundIn(typ1, f"Kunde {anzahlTyp1} Typ 1")
+        typ1Kunde = KundIn(typ1, f"Kunde 1-{anzahlTyp1}")
         # Ereignis = (ereigniszeitpunkt, ereignispriorität, ereignisnummer, ereignisfunktion, ereignisargument)
         # Ein Ereignis ist ein 5-Tupel
         neuesEreignis = (startTyp1, supermarkt.ereignisnummer, 1, CUSTOMER_ENTRANCE, typ1Kunde)
@@ -265,7 +265,7 @@ def customerSpawner(maxZeit):
     while ((int(startTyp2)) < int(maxZeit)):
         supermarkt.ereignisnummer += 1
         anzahlTyp2 += 1
-        typ2Kunde = KundIn(typ2, f"Kunde {anzahlTyp2} Typ 2")
+        typ2Kunde = KundIn(typ2, f"Kunde 2-{anzahlTyp2}")
         neuesEreignis = (startTyp2, supermarkt.ereignisnummer, 1, CUSTOMER_ENTRANCE, typ2Kunde)
         startTyp2 += abstandTyp2
         supermarkt.push(neuesEreignis)
@@ -273,5 +273,7 @@ def customerSpawner(maxZeit):
 
 
 if __name__ == '__main__':
+    print("Kunde Typ-Anzahl")
+    print("|||||||||||||||||||||||||")
     customerSpawner(maximalZeit)
     supermarkt.start()
