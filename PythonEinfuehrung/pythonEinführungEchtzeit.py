@@ -2,10 +2,11 @@ import time
 from threading import Thread, Event
 from queue import Queue
 
-TIME_FACTOR = 0.1 # 0.5 => Doppelt so schnell
+TIME_FACTOR = 0.1  # 0.5 => Doppelt so schnell
 
 END_TIME = 0
 MAX_TIME = 1800
+
 
 class CustomerSpawner:
     def __init__(self):
@@ -46,9 +47,10 @@ class CustomerSpawner:
         self.__t.start()
 
 
-#CUSTOMER Variables
+# CUSTOMER Variables
 NOT_FINISHED = False
 FINISHED = True
+
 
 class Customer:
     def __init__(self, customer_id, station_tuple_list):
@@ -57,7 +59,7 @@ class Customer:
         self.beginServedEvt = Event()
         self.__number_of_items = 1
         self.station_tuple_list = station_tuple_list
-        #Statistik
+        # Statistik
         self.buy_status = NOT_FINISHED
         self.kompletteEinkaufszeit = time.time()
         self.uebersprungeneStationen = 0
@@ -66,7 +68,7 @@ class Customer:
         self.__t.start()
 
     def __routine__(self):
-        #time.sleep(0.4 * TIME_FACTOR) #To be within the second
+        # time.sleep(0.4 * TIME_FACTOR) #To be within the second
         for e in self.station_tuple_list:
             STATION = e[0]
             WAY_TO_STATION = e[1]
@@ -104,7 +106,8 @@ class Customer:
 class CustomerType1(Customer):
     def __init__(self, customer_id):
         Customer.__init__(self, customer_id,
-                          [(stations[0], 10, 10, 10), (stations[1], 30, 10, 5), (stations[2], 45, 5, 3), (stations[3], 60, 20, 30)])
+                          [(stations[0], 10, 10, 10), (stations[1], 30, 10, 5), (stations[2], 45, 5, 3),
+                           (stations[3], 60, 20, 30)])
 
     def type(self):
         return 1
@@ -165,24 +168,25 @@ class Station:
 
 stations = [Station("Bäcker", 10), Station("Wursttheke", 30), Station("Käsetheke", 60), Station("Kasse", 5)]
 
-
-#Statistik
+# Statistik
 liste_aller_kunden = list()
+
 
 def getKundenAnzahl():
     return len(liste_aller_kunden)
 
-#Listen für Customer/Station Output
+
+# Listen für Customer/Station Output
 output_customer = list()
 output_station = list()
 
-def statistikAuswerten():
 
-    #supermarkt_customer Output
+def statistikAuswerten():
+    # supermarkt_customer Output
     for output in output_customer:
         print(output)
 
-    #supermarkt_station Output
+    # supermarkt_station Output
     for output in output_station:
         print(output)
 
@@ -201,13 +205,17 @@ def statistikAuswerten():
     mittlere_einkaufsdauer = mittlere_einkaufsdauer / getKundenAnzahl()
     mittlere_einkaufsdauer_vollstaendig = mittlere_einkaufsdauer_vollstaendig / anzahl_vollstaendiger_einkaufe
 
-    droppercentageBaecker = stations[0].anzahlAusgelassen * 100 /stations[0].anzahlDerKunden if stations[0].anzahlAusgelassen != 0 else 0
-    droppercentageWursttheke = stations[1].anzahlAusgelassen * 100 / stations[1].anzahlDerKunden if stations[1].anzahlAusgelassen != 0 else 0
-    droppercentageKaesetheke = stations[2].anzahlAusgelassen * 100 / stations[2].anzahlDerKunden if stations[2].anzahlAusgelassen != 0 else 0
-    droppercentageKasse = stations[3].anzahlAusgelassen * 100 / stations[3].anzahlDerKunden if stations[3].anzahlAusgelassen != 0 else 0
+    droppercentageBaecker = stations[0].anzahlAusgelassen * 100 / stations[0].anzahlDerKunden if stations[
+                                                                                                     0].anzahlAusgelassen != 0 else 0
+    droppercentageWursttheke = stations[1].anzahlAusgelassen * 100 / stations[1].anzahlDerKunden if stations[
+                                                                                                        1].anzahlAusgelassen != 0 else 0
+    droppercentageKaesetheke = stations[2].anzahlAusgelassen * 100 / stations[2].anzahlDerKunden if stations[
+                                                                                                        2].anzahlAusgelassen != 0 else 0
+    droppercentageKasse = stations[3].anzahlAusgelassen * 100 / stations[3].anzahlDerKunden if stations[
+                                                                                                   3].anzahlAusgelassen != 0 else 0
 
-    #print(f"\nSimulationsende: {supermarkt.zeit}s")
-    #print(f"\nSimulationsende: xs")
+    # print(f"\nSimulationsende: {supermarkt.zeit}s")
+    # print(f"\nSimulationsende: xs")
     print(f"Anzahl Kunden: {len(liste_aller_kunden)}")
     print(f"Anzahl vollständige Einkäufe: {anzahl_vollstaendiger_einkaufe}")
     print(f"Mittlere Einkaufsdauer: %.2fs" % mittlere_einkaufsdauer)
@@ -216,6 +224,7 @@ def statistikAuswerten():
     print(f"Drop percentage at Wursttheke: %.2f" % droppercentageWursttheke)
     print(f"Drop percentage at Käsetheke: %.2f" % droppercentageKaesetheke)
     print(f"Drop percentage at Kasse: %.2f" % droppercentageKasse)
+
 
 if __name__ == '__main__':
     for s in stations:
