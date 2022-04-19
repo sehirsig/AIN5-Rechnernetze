@@ -86,8 +86,7 @@ class Customer:
                 print(self.description() + " lässt die Station " + STATION.description + "aus")
                 STATION.anzahlAusgelassen += 1
                 self.uebersprungeneStationen += 1
-            print(self.description() + " ist fertig")
-        print(self.description() + "verlässt den Supermarkt")
+        print(self.description() + " verlässt den Supermarkt")
         self.buy_status = FINISHED
         self.kompletteEinkaufszeit = (time.time() - self.kompletteEinkaufszeit) * TIME_FACTOR
 
