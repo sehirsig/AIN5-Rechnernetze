@@ -1,12 +1,12 @@
+import threading
 import time
-from threading import Thread, Event
+from threading import Thread, Event, Lock
 from queue import Queue
 
 TIME_FACTOR = 0.1  # 0.5 => Doppelt so schnell
 
 END_TIME = 0
 MAX_TIME = 1800
-
 
 class CustomerSpawner:
     def __init__(self):
@@ -75,16 +75,23 @@ class Customer:
             QUEUE_LENGTH = e[2]
             self.__number_of_items = e[3]
 
+            STATION.count_lock.acquire()
             STATION.anzahlDerKunden += 1
+            STATION.count_lock.release()
 
             time.sleep(WAY_TO_STATION * TIME_FACTOR)
             if STATION.queue_length() < QUEUE_LENGTH:
+                STATION.warteschlange_lock.acquire()
                 STATION.enqueue(self)
+                STATION.warteschlange_lock.release()
                 self.beginServedEvt.wait()
+                print(self.description() + " wird bei"  +" b 222 edient\n")
                 STATION.endServeEvt.wait()
             else:
                 print(self.description() + " lässt die Station " + STATION.description + "aus")
+                STATION.count_lock.acquire()
                 STATION.anzahlAusgelassen += 1
+                STATION.count_lock.release()
                 self.uebersprungeneStationen += 1
         print(self.description() + " verlässt den Supermarkt")
         self.buy_status = FINISHED
@@ -132,6 +139,9 @@ class Station:
         self.time_per_item = time_per_item
         self.anzahlAusgelassen = 0
         self.anzahlDerKunden = 0
+        self.warteschlange_lock = Lock()
+        self.count_lock = Lock()
+
 
     def enqueue(self, customer):
         self.__customer_queue__.put(customer)
