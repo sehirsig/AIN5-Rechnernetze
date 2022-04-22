@@ -83,7 +83,6 @@ class Customer:
             if STATION.queue_length() < QUEUE_LENGTH:
                 STATION.warteschlange_lock.acquire()
                 STATION.enqueue(self)
-                STATION.warteschlange_lock.release()
                 self.beginServedEvt.wait()
                 print(self.description() + " wird bei"  +" b 222 edient\n")
                 STATION.endServeEvt.wait()
@@ -93,6 +92,7 @@ class Customer:
                 STATION.anzahlAusgelassen += 1
                 STATION.count_lock.release()
                 self.uebersprungeneStationen += 1
+
         print(self.description() + " verlässt den Supermarkt")
         self.buy_status = FINISHED
         self.kompletteEinkaufszeit = (time.time() - self.kompletteEinkaufszeit) * TIME_FACTOR
@@ -148,6 +148,7 @@ class Station:
         self.enqueue_Evt.set()
         print(customer.description() + " bei " + self.description + " eingereiht; Warteschlange: "
               + str(self.__customer_queue__.qsize()) + "\n")
+        self.warteschlange_lock.release()
 
     def dequeue(self):
         customer = self.__customer_queue__.get()
@@ -165,7 +166,9 @@ class Station:
             self.enqueue_Evt.clear()
             while self.queue_is_empty():
                 self.enqueue_Evt.wait()
+            self.warteschlange_lock.acquire()
             customer = self.dequeue()
+            self.warteschlange_lock.release()
             print(customer.description() + " wird bei " + self.description + " bedient\n")
             time.sleep(self.time_per_item * customer.get_number_of_items() * TIME_FACTOR)
             print(customer.description() + " verlässt " + self.description + "\n")
