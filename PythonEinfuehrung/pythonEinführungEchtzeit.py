@@ -24,22 +24,21 @@ class CustomerSpawner(GeneralRunner):
     def __routine__(self):
         customer_id_type1 = 0
         customer_id_type2 = 0
-        for i in range(2147483647):
-            TIME = i
-            print("Zeit: " + str(i) + "\n")
-            if (i <= MAX_TIME):
-                if (customer_id_type1 * 200) == i:
+        for time_count in range(2147483647):
+            print("Zeit: " + str(time_count) + "\n")
+            if time_count <= MAX_TIME:
+                if (customer_id_type1 * 200) == time_count:
                     c = CustomerType1(customer_id_type1)
                     liste_aller_kunden.append(c)
                     customer_id_type1 += 1
                     c.start()
-                    print(str(TIME) + ":" + c.description() + " betritt den Supermarkt\n")
-                if ((customer_id_type2 * 60) + 1) == i:
+                    print(str(time_count) + ":" + c.description() + " betritt den Supermarkt\n")
+                if ((customer_id_type2 * 60) + 1) == time_count:
                     c = CustomerType2(customer_id_type2)
                     liste_aller_kunden.append(c)
                     customer_id_type2 += 1
                     c.start()
-                    print(str(TIME) + ":" + c.description() + " betritt den Supermarkt\n")
+                    print(str(time_count) + ":" + c.description() + " betritt den Supermarkt\n")
             else:
                 not_all_finish_flag = 0
                 for customers in liste_aller_kunden:
@@ -47,7 +46,6 @@ class CustomerSpawner(GeneralRunner):
                         not_all_finish_flag = 1
                         break;
                 if not not_all_finish_flag:
-                    END_TIME = i
                     statistikAuswerten()
                     return
             time.sleep(TIME_FACTOR)
