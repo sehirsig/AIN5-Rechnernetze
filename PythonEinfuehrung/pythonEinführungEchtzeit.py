@@ -8,9 +8,18 @@ END_TIME = 0
 MAX_TIME = 1800
 
 
-class CustomerSpawner:
+class GeneralRunner:
     def __init__(self):
         self.__t = Thread(target=self.__routine__)
+
+    def __routine__(self): pass
+
+    def start(self): self.__t.start()
+
+
+class CustomerSpawner(GeneralRunner):
+    def __init__(self):
+        GeneralRunner.__init__(self)
 
     def __routine__(self):
         customer_id_type1 = 0
@@ -43,18 +52,15 @@ class CustomerSpawner:
                     return
             time.sleep(1 * TIME_FACTOR)
 
-    def start(self):
-        self.__t.start()
-
 
 # CUSTOMER Variables
 NOT_FINISHED = False
 FINISHED = True
 
 
-class Customer:
+class Customer(GeneralRunner):
     def __init__(self, customer_id, station_tuple_list):
-        self.__t = Thread(target=self.__routine__)
+        GeneralRunner.__init__(self)
         self.customer_id = customer_id
         self.beginServedEvt = Event()
         self.beginServedEvtLock = Lock()
@@ -64,9 +70,6 @@ class Customer:
         self.buy_status = NOT_FINISHED
         self.kompletteEinkaufszeit = time.time()
         self.uebersprungeneStationen = 0
-
-    def start(self):
-        self.__t.start()
 
     def __routine__(self):
         # time.sleep(0.4 * TIME_FACTOR) #To be within the second
@@ -130,21 +133,20 @@ class CustomerType2(Customer):
         return 2
 
 
-class Station:
+class Station(GeneralRunner):
     def __init__(self, description, time_per_item):
+        GeneralRunner.__init__(self)
         self.description = description
         self.__current_customer__ = None
         self.__customer_queue__ = Queue()
         self.enqueue_Evt = Event()
         self.endServeEvt = Event()
         self.endServeEvtLock = Lock()
-        self.__t = Thread(target=self.__routine__)
         self.time_per_item = time_per_item
         self.anzahlAusgelassen = 0
         self.anzahlDerKunden = 0
         self.warteschlange_lock = Lock()
         self.count_lock = Lock()
-
 
     def enqueue(self, customer):
         self.__customer_queue__.put(customer)
@@ -174,9 +176,6 @@ class Station:
             time.sleep(self.time_per_item * customer.get_number_of_items() * TIME_FACTOR)
             print(customer.description() + " verlässt " + self.description + "\n")
             self.endServeEvt.set()
-
-    def start(self):
-        self.__t.start()
 
 
 stations = [Station("Bäcker", 10), Station("Wursttheke", 30), Station("Käsetheke", 60), Station("Kasse", 5)]
