@@ -2,10 +2,12 @@ import time
 from threading import Thread, Event, Lock
 from queue import Queue
 
-TIME_FACTOR = 0.1  # 0.5 => Doppelt so schnell
+TIME_FACTOR = 0.1 # 0.5 => Doppelt so schnell
 
 END_TIME = 0
 MAX_TIME = 1800
+
+CustomerEvent = Event()
 
 
 class GeneralRunner:
@@ -24,8 +26,17 @@ class CustomerSpawner(GeneralRunner):
     def __routine__(self):
         customer_id_type1 = 0
         customer_id_type2 = 0
+
+        actual_time = 0
+
+        perf_timer_overhead_start = time.perf_counter()
+        dummy_timer = time.perf_counter()
+        perf_timer_overhead_end = time.perf_counter()
+        perf_timer_overhead = perf_timer_overhead_end - perf_timer_overhead_start
+
         for time_count in range(2147483647):
-            print("Zeit: " + str(time_count) + "\n")
+            perf_start = time.perf_counter()
+            print("Zeit: " + str(time_count) + " | Actual: " + str(actual_time) + "\n")
             if time_count <= MAX_TIME:
                 if (customer_id_type1 * 200) == time_count:
                     c = CustomerType1(customer_id_type1)
@@ -48,8 +59,15 @@ class CustomerSpawner(GeneralRunner):
                 if not not_all_finish_flag:
                     statistikAuswerten()
                     return
-            time.sleep(TIME_FACTOR)
 
+            #Overhead entfernen
+            perf_end = time.perf_counter()
+            start = time.perf_counter()
+            time.sleep(TIME_FACTOR - (perf_end - perf_start) - (perf_timer_overhead * 4))
+            end = time.perf_counter()
+            #Actual Time is the time including Sleep overhead
+            actual_time = actual_time + ((end - start) / TIME_FACTOR)
+            print("Time.Sleep should=" + str(TIME_FACTOR) + " | is=" + str(end-start))
 
 # CUSTOMER Variables
 NOT_FINISHED = False
@@ -83,7 +101,9 @@ class Customer(GeneralRunner):
 
             time.sleep(WAY_TO_STATION * TIME_FACTOR)
             if STATION.queue_length() < QUEUE_LENGTH:
+                STATION.enqueue_lock.acquire()
                 STATION.enqueue(self)
+                STATION.enqueue_lock.release()
                 self.beginServedEvtLock.acquire()
                 self.beginServedEvt.wait()
                 self.beginServedEvt.clear()
@@ -98,7 +118,7 @@ class Customer(GeneralRunner):
                 self.uebersprungeneStationen += 1
         print(self.description() + " verlässt den Supermarkt\n")
         self.buy_status = FINISHED
-        self.kompletteEinkaufszeit = (time.time() - self.kompletteEinkaufszeit) * TIME_FACTOR
+        self.kompletteEinkaufszeit = (time.time() - self.kompletteEinkaufszeit) / TIME_FACTOR
 
     def type(self):
         pass
@@ -143,6 +163,7 @@ class Station(GeneralRunner):
         self.time_per_item = time_per_item
         self.anzahlAusgelassen = 0
         self.anzahlDerKunden = 0
+        self.enqueue_lock = Lock()
         self.warteschlange_lock = Lock()
         self.count_lock = Lock()
 
@@ -165,7 +186,9 @@ class Station(GeneralRunner):
 
     def __routine__(self):
         while True:
+            self.enqueue_lock.acquire()
             self.enqueue_Evt.clear()
+            self.enqueue_lock.release()
             while self.queue_is_empty():
                 self.enqueue_Evt.wait()
                 self.enqueue_Evt.clear()
