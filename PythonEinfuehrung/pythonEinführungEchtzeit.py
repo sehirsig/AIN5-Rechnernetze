@@ -1,4 +1,3 @@
-import threading
 import time
 from threading import Thread, Event, Lock
 from queue import Queue
@@ -7,6 +6,7 @@ TIME_FACTOR = 0.1  # 0.5 => Doppelt so schnell
 
 END_TIME = 0
 MAX_TIME = 1800
+
 
 class CustomerSpawner:
     def __init__(self):
@@ -57,6 +57,7 @@ class Customer:
         self.__t = Thread(target=self.__routine__)
         self.customer_id = customer_id
         self.beginServedEvt = Event()
+        self.beginServedEvtLock = Lock()
         self.__number_of_items = 1
         self.station_tuple_list = station_tuple_list
         # Statistik
@@ -81,16 +82,18 @@ class Customer:
 
             time.sleep(WAY_TO_STATION * TIME_FACTOR)
             if STATION.queue_length() < QUEUE_LENGTH:
-                STATION.warteschlange_lock.acquire()
                 STATION.enqueue(self)
+                self.beginServedEvtLock.acquire()
                 self.beginServedEvt.wait()
-                print(self.description() + " wird bei"  +" b 222 edient\n")
+                self.beginServedEvt.clear()
+                self.beginServedEvtLock.release()
+                STATION.endServeEvtLock.acquire()
                 STATION.endServeEvt.wait()
+                STATION.endServeEvt.clear()
+                STATION.endServeEvtLock.release()
             else:
-                print(self.description() + " lässt die Station " + STATION.description + "aus")
-                STATION.count_lock.acquire()
+                print(self.description() + " lässt die Station " + STATION.description + " aus")
                 STATION.anzahlAusgelassen += 1
-                STATION.count_lock.release()
                 self.uebersprungeneStationen += 1
         print(self.description() + " verlässt den Supermarkt\n")
         self.buy_status = FINISHED
@@ -134,6 +137,7 @@ class Station:
         self.__customer_queue__ = Queue()
         self.enqueue_Evt = Event()
         self.endServeEvt = Event()
+        self.endServeEvtLock = Lock()
         self.__t = Thread(target=self.__routine__)
         self.time_per_item = time_per_item
         self.anzahlAusgelassen = 0
@@ -147,7 +151,6 @@ class Station:
         self.enqueue_Evt.set()
         print(customer.description() + " bei " + self.description + " eingereiht; Warteschlange: "
               + str(self.__customer_queue__.qsize()) + "\n")
-        self.warteschlange_lock.release()
 
     def dequeue(self):
         customer = self.__customer_queue__.get()
@@ -165,9 +168,8 @@ class Station:
             self.enqueue_Evt.clear()
             while self.queue_is_empty():
                 self.enqueue_Evt.wait()
-            self.warteschlange_lock.acquire()
+                self.enqueue_Evt.clear()
             customer = self.dequeue()
-            self.warteschlange_lock.release()
             print(customer.description() + " wird bei " + self.description + " bedient\n")
             time.sleep(self.time_per_item * customer.get_number_of_items() * TIME_FACTOR)
             print(customer.description() + " verlässt " + self.description + "\n")
