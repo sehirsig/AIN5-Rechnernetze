@@ -26,8 +26,8 @@ class CustomerSpawner(GeneralRunner):
         customer_id_type2 = 0
         for i in range(2147483647):
             TIME = i
+            print("Zeit: " + str(i) + "\n")
             if (i <= MAX_TIME):
-                print("Zeit: " + str(i) + "\n")
                 if (customer_id_type1 * 200) == i:
                     c = CustomerType1(customer_id_type1)
                     liste_aller_kunden.append(c)
@@ -50,7 +50,7 @@ class CustomerSpawner(GeneralRunner):
                     END_TIME = i
                     statistikAuswerten()
                     return
-            time.sleep(1 * TIME_FACTOR)
+            time.sleep(TIME_FACTOR)
 
 
 # CUSTOMER Variables
