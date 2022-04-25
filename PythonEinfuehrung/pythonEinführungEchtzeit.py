@@ -92,8 +92,7 @@ class Customer:
                 STATION.anzahlAusgelassen += 1
                 STATION.count_lock.release()
                 self.uebersprungeneStationen += 1
-
-        print(self.description() + " verlässt den Supermarkt")
+        print(self.description() + " verlässt den Supermarkt\n")
         self.buy_status = FINISHED
         self.kompletteEinkaufszeit = (time.time() - self.kompletteEinkaufszeit) * TIME_FACTOR
 
