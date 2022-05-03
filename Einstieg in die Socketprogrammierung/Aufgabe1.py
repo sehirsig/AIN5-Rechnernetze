@@ -15,7 +15,7 @@ MAILSERVER = "asmtp.htwg-konstanz.de"
 ASMPT_PORT = 587
 
 SENDER_USERNAME = 'rnetin'
-SENDER_PASSWORD = 'ntsmobil'
+SENDER_PASSWORD = 'Ueben8fuer8RN'
 
 SENDER_EMAIL = '<spoofedTest@test.com>'
 RCPT = '<sebastian.hirsig@htwg-konstanz.de>'
