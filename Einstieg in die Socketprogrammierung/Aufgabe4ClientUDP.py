@@ -9,8 +9,9 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.settimeout(10)
 
 try:
-    print("Operator angeben: 1 - 4 (Summe, Produkt, Minimum, Maximum)")
+    print("Operator angeben: 1 - 4 (Summe, Produkt, Minimum, Maximum):")
     op = int(input())
+    print("Zahlen angeben, mit Leerzeichen getrennt:")
     l = input().split(" ")
     l = list(map(int, l))
     s1 = struct.pack("ii", op, len(l))

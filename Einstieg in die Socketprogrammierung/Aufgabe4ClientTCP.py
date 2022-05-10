@@ -11,8 +11,9 @@ print('Connecting to TCP server with IP ', Server_IP, ' on Port ', Server_PORT)
 sock.connect((Server_IP, Server_PORT))
 
 try:
-    print("Operator angeben: 1 - 4 (Summe, Produkt, Minimum, Maximum)")
+    print("Operator angeben: 1 - 4 (Summe, Produkt, Minimum, Maximum):")
     op = int(input())
+    print("Zahlen angeben, mit Leerzeichen getrennt:")
     l = input().split(" ")
     l = list(map(int, l))
     s1 = struct.pack("ii", op, len(l))
