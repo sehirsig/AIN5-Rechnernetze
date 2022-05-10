@@ -51,14 +51,17 @@ def calculate(OPERATOR, b):
 
 while time.time() < t_end:
     try:
-        a, adress = sock.recvfrom(8)
+        a, adress1 = sock.recvfrom(8)
         s1 = struct.unpack("ii", a)
         OPERATOR = s1[0]
         LENGTH = s1[1]
-        b, adress = sock.recvfrom(4 * LENGTH)
+        b, adress2 = sock.recvfrom(4 * LENGTH)
+        if (adress1 != adress2):
+            print("Received second package from wrong IP Address. Error.")
+            break;
         s2 = struct.unpack("i" * LENGTH, b)
         res = calculate(OPERATOR, s2)
-        sock.sendto(struct.pack("l", res), adress)
+        sock.sendto(struct.pack("l", res), adress1)
     except socket.timeout:
         print('Socket timed out at', time.asctime())
 
