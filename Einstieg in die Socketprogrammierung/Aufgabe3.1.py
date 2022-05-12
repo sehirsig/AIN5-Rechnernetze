@@ -97,7 +97,7 @@ print(recv)
 #ehlo asmtp.htwg-konstanz.de
 #AUTH LOGIN
 #cm5ldGlu
-#bnRzbW9iaWw=
+#VWViZW44ZnVlcjhSTg==
 #MAIL FROM: <rnetin@htwg-konstanz.de>
 #MAIL FROM: <renetest@htwg-konstanz.de>
 #rcpt to: <sebastian.hirsig@htwg-konstanz.de>
