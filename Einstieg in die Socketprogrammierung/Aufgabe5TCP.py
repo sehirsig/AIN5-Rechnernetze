@@ -6,6 +6,7 @@ import threading
 
 
 def connectThem(number):
+    start = time.time();
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(10)
     # print('TCP Client created')
@@ -15,13 +16,12 @@ def connectThem(number):
     #print('Connecting to TCP server with IP ', Server_IP, ' on Port ', Server_PORT)
     try:
         sock.connect((Server_IP, Server_PORT))
-        print("connected")
         msg = "Hello"
         sock.send(msg)
         answer = sock.recv(1024)
-        print("Ergebnis Socket " + i + ": " + str(answer))
+        print("-->" + "Ergebnis Socket " + str(number) + ": " + str(answer) + " at " + str(time.time() - start))
     except:
-        print(str(number) + " Failed.")                            
+        print("-->" + str(number) + " Failed." + " at " + str(time.time() - start))
         #print('Socket timed out at', time.asctime())
     sock.close()
 
