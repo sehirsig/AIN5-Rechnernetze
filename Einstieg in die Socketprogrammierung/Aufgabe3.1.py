@@ -98,7 +98,7 @@ print(recv)
 #AUTH LOGIN
 #cm5ldGlu
 #VWViZW44ZnVlcjhSTg==
-#MAIL FROM: <rnetin@htwg-konstanz.de>
+#MAIL FROM:<rnetin@htwg-konstanz.de>
 #MAIL FROM: <renetest@htwg-konstanz.de>
 #rcpt to: <sebastian.hirsig@htwg-konstanz.de>
 #data
@@ -108,4 +108,5 @@ print(recv)
 #This is a test
 #
 #.
+#QUIT
 
