@@ -16,11 +16,12 @@ def connectThem(number):
     #print('Connecting to TCP server with IP ', Server_IP, ' on Port ', Server_PORT)
     try:
         msg = "Hello"
-        sock.sendto(msg.encode('utf-8'), (Server_IP, Server_PORT))
+        dd = sock.sendto(msg.encode('utf-8'), (Server_IP, Server_PORT))
+        print(str(dd))
         data, addr = sock.recvfrom(1024)
-        print("-->" + "Ergebnis Socket " + number + " : " + str(data) + " : " + str(addr)+ " at " + str(time.time() - start))
-    except:
-        print("-->" + str(number) + " Failed."+ " at " + str(time.time() - start))
+        print("-->" + "Ergebnis Socket " + str(number) + " : " + str(data) + " : " + str(addr)+ " at " + str(time.time() - start) + "\n")
+    except Exception as e:
+        print("-->" + str(number) + " Failed."+ " at " + str(time.time() - start) + " " + str(e) + "\n")
         #print('Socket timed out at', time.asctime())
 
 for i in range(1,51):
