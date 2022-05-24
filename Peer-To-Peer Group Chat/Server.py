@@ -1,10 +1,11 @@
 import socket
 import struct
 import time
+import numpy as np
 
 NOTIFY_NEW_USER_COMMAND = 1
 
-client_list = [] #[Spitzname, IP-Adresse, Port, Socket]
+client_list = []  # [Spitzname, IP-Adresse, Port, Socket]
 
 My_IP = '127.0.0.1'
 My_PORT = 50000
@@ -18,6 +19,27 @@ t_end = time.time() + server_activity_period  # Ende der Aktivitätsperiode
 
 sock.listen(1)
 print('Listening ...')
+
+
+def make_bytes_from_ip(ip_str):
+    l = list(map(lambda x: int(x), ip_str.split(".")))
+
+    def check():
+        if len(l) != 4:
+            return False
+        for e in l:
+            if e < 0 | e > 255:
+                return False
+        return True
+
+    if not check():
+        print("ip adress uncorrect")
+        exit(1)
+    return bytes(
+        list(map(
+            lambda x: np.int8(x), l
+        ))
+    )
 
 
 def notify_others(new_user):
@@ -36,7 +58,9 @@ while True:
         print('Incoming connection accepted: ', addr)
         nickname = conn.recv(1024).decode("utf8")
         print("client accepted: " + nickname)
-        new_user = (nickname, addr[0], addr[1], conn)
+        ip = make_bytes_from_ip(addr[0])
+        port = addr[1]
+        new_user = (nickname, ip, port, conn)
         client_list.append(new_user)
         notify_others(new_user)
     except socket.timeout:
