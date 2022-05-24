@@ -18,10 +18,11 @@ nickname = input()
 sock.send(nickname.encode('utf-8'))
 
 while True:
-    command = struct.unpack("i", sock.recv(4))
-    if command == NOTIFY_NEW_USER_COMMAND:
-        nickname = sock.recv(1024).decode("utf8")
-        ip = sock.recv(1024).decode("utf8")
-        port = sock.recv(1024).decode("utf8")
-        user_list.append((nickname, ip, port))
-        print("new User: " + nickname + "; ip: ;" + ip + "port: " + port)
+    #command = struct.unpack("i", sock.recv(4))
+    #if command == NOTIFY_NEW_USER_COMMAND:
+        paket = sock.recv(1024)
+        #ip = sock.recv(1024).decode("utf8")
+        #port = sock.recv(1024).decode("utf8")
+        #user_list.append((nickname, ip, port))
+        #print("new User: " + nickname + "; ip: ;" + ip + "port: " + port)
+        print("new User")

@@ -43,13 +43,14 @@ def make_bytes_from_ip(ip_str):
 
 
 def notify_others(new_user):
-    for i in range(len(client_list) - 1):
-        s = client_list[i][3]
-        entry = client_list[i]
-        s.send(struct.pack("i", NOTIFY_NEW_USER_COMMAND))
-        s.send(entry[0].encode("utf8"))
-        s.send(entry[1].encode("utf8"))
-        s.send(entry[2].encode("utf8"))
+    #for i in range(len(client_list) - 1):
+        msg = new_user[0].encode("utf8")
+        ip = new_user[1]
+        port = new_user[2].to_bytes(4, 'big')
+        paket_length = (len(msg) + 12).to_bytes(4, 'big') # zusätzlich Länge von IP, Port und Paketlänge selbst
+        paket = paket_length + msg + ip + port
+        s = struct.pack("i" * len(paket), *paket)
+        print(s)
 
 
 while True:
