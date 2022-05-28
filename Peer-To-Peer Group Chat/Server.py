@@ -41,16 +41,25 @@ def make_bytes_from_ip(ip_str):
     )
 
 
-def notify_others(new_user):
-    for i in range(len(client_list) - 1):
-        nickname = new_user[0].encode("utf8")
-        ip = new_user[1]
-        port = new_user[2].to_bytes(4, 'big')
-        conn = client_list[i][3]
-        paket_length = (len(nickname) + 12).to_bytes(4, 'big') # zusätzlich Länge von IP, Port und Paketlänge selbst
-        paket = paket_length + nickname + ip + port
-        conn.send(paket)
+def notify_user(new_user, user_index):
+    nickname = new_user[0].encode("utf8")
+    ip = new_user[1]
+    port = new_user[2].to_bytes(4, 'big')
+    conn = client_list[user_index][3]
+    paket_length = (len(nickname) + 12).to_bytes(4, 'big')  # zusätzlich Länge von IP, Port und Paketlänge selbst
+    paket = paket_length + nickname + ip + port
+    conn.send(paket)
 
+
+def notify_others(new_user):
+    LIMIT = len(client_list) - 1
+    # bestehende Nutzer informieren
+    for i in range(LIMIT):
+        notify_user(new_user, i)
+    # neuem Nutzer die bestenden melden
+    for i in range(LIMIT):
+        user = client_list[i]
+        notify_user(user, LIMIT)
 
 while True:
     try:
@@ -58,8 +67,8 @@ while True:
         print('Incoming connection accepted: ', addr)
         data = conn.recv(1024)
         length = int.from_bytes(data[0:4], 'big')
-        nickname = data[4 : length - 4].decode("utf8")
-        udp_port = int.from_bytes(data[length - 4 : length], 'big')
+        nickname = data[4: length - 4].decode("utf8")
+        udp_port = int.from_bytes(data[length - 4: length], 'big')
         print("client accepted: " + nickname)
         ip = make_bytes_from_ip(addr[0])
         new_user = (nickname, ip, udp_port, conn)
