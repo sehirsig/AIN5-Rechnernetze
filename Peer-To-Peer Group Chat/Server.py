@@ -61,6 +61,7 @@ def notify_others(new_user):
         user = client_list[i]
         notify_user(user, LIMIT)
 
+
 while True:
     try:
         conn, addr = sock.accept()
