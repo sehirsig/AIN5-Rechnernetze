@@ -28,4 +28,5 @@ while True:
     #port = sock.recv(1024).decode("utf8")
     #user_list.append((nickname, ip, port))
     #print("new User: " + nickname + "; ip: ;" + ip + "port: " + port)
-    print("new User")
+    print("new User\n" + paket[4:length - 8].decode("utf8"))
+    print(paket)

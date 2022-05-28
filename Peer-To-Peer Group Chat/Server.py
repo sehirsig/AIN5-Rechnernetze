@@ -9,7 +9,7 @@ client_list = []  # [Spitzname, IP-Adresse, Port, Socket]
 
 My_IP = '127.0.0.1'
 My_PORT = 50000
-server_activity_period = 30;
+server_activity_period = 100;
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((My_IP, My_PORT))
@@ -44,12 +44,14 @@ def make_bytes_from_ip(ip_str):
 
 def notify_others(new_user):
     for i in range(len(client_list) - 1):
-        msg = new_user[0].encode("utf8")
+        nickname = new_user[0].encode("utf8")
         ip = new_user[1]
         port = new_user[2].to_bytes(4, 'big')
-        paket_length = (len(msg) + 12).to_bytes(4, 'big') # zusätzlich Länge von IP, Port und Paketlänge selbst
-        paket = paket_length + msg + ip + port
-        s = struct.pack("i" * len(paket), *paket)
+        conn = client_list[i][3]
+        paket_length = (len(nickname) + 12).to_bytes(4, 'big') # zusätzlich Länge von IP, Port und Paketlänge selbst
+        paket = paket_length + nickname + ip + port
+        #s = struct.pack("i" * len(paket), *paket)
+        conn.send(paket)
 
 
 while True:
