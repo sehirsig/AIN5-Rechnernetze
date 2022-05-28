@@ -56,11 +56,13 @@ while True:
     try:
         conn, addr = sock.accept()
         print('Incoming connection accepted: ', addr)
-        nickname = conn.recv(1024).decode("utf8")
+        data = conn.recv(1024)
+        length = int.from_bytes(data[0:4], 'big')
+        nickname = data[4 : length - 4].decode("utf8")
+        udp_port = int.from_bytes(data[length - 4 : length], 'big')
         print("client accepted: " + nickname)
         ip = make_bytes_from_ip(addr[0])
-        port = addr[1]
-        new_user = (nickname, ip, port, conn)
+        new_user = (nickname, ip, udp_port, conn)
         client_list.append(new_user)
         notify_others(new_user)
     except socket.timeout:
