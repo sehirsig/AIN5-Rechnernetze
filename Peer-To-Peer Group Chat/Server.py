@@ -1,5 +1,4 @@
 import socket
-import struct
 import time
 import numpy as np
 
@@ -50,7 +49,6 @@ def notify_others(new_user):
         conn = client_list[i][3]
         paket_length = (len(nickname) + 12).to_bytes(4, 'big') # zusätzlich Länge von IP, Port und Paketlänge selbst
         paket = paket_length + nickname + ip + port
-        #s = struct.pack("i" * len(paket), *paket)
         conn.send(paket)
 
 

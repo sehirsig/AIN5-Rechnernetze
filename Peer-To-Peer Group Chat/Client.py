@@ -1,6 +1,4 @@
 import socket
-import struct
-import time
 
 NOTIFY_NEW_USER_COMMAND = 1
 
@@ -19,14 +17,21 @@ print("Spitzname eingeben:")
 nickname = input()
 sock.send(nickname.encode('utf-8'))
 
+
+def get_ip_from_bytes(ip):
+    res = ""
+    for i in range(3):
+        res += (str(ip[i]) + ".")
+    res += str(ip[3])
+    return res
+
 while True:
     #command = struct.unpack("i", sock.recv(4))
     #if command == NOTIFY_NEW_USER_COMMAND:
     paket = sock.recv(1024)
     length = int.from_bytes(paket[0:4], 'big')
-    #ip = sock.recv(1024).decode("utf8")
-    #port = sock.recv(1024).decode("utf8")
-    #user_list.append((nickname, ip, port))
-    #print("new User: " + nickname + "; ip: ;" + ip + "port: " + port)
-    print("new User\n" + paket[4:length - 8].decode("utf8"))
-    print(paket)
+    nickname = paket[4:length - 8].decode("utf8")
+    ip = get_ip_from_bytes(paket[length - 8: length - 4])
+    port = int.from_bytes(paket[length - 4:length], 'big')
+    user_list.append((nickname, ip, port))
+    print("new User\n" + nickname)
