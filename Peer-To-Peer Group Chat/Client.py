@@ -1,4 +1,5 @@
 import socket
+from threading import Thread
 
 NOTIFY_NEW_USER_COMMAND = 1
 
@@ -39,13 +40,17 @@ def get_ip_from_bytes(ip):
     return res
 
 
-while True:
-    # command = struct.unpack("i", sock.recv(4))
-    # if command == NOTIFY_NEW_USER_COMMAND:
-    paket = sock.recv(1024)
-    length = int.from_bytes(paket[0:4], 'big')
-    nickname = paket[4:length - 8].decode("utf8")
-    ip = get_ip_from_bytes(paket[length - 8: length - 4])
-    port = int.from_bytes(paket[length - 4:length], 'big')
-    user_list.append((nickname, ip, port))
-    print("new User\n" + nickname)
+def routine_wait_for_new_users():
+    while True:
+        # command = struct.unpack("i", sock.recv(4))
+        # if command == NOTIFY_NEW_USER_COMMAND:
+        paket = sock.recv(1024)
+        length = int.from_bytes(paket[0:4], 'big')
+        nickname = paket[4:length - 8].decode("utf8")
+        ip = get_ip_from_bytes(paket[length - 8: length - 4])
+        port = int.from_bytes(paket[length - 4:length], 'big')
+        user_list.append((nickname, ip, port))
+        print("new User\n" + nickname)
+
+
+Thread(target=routine_wait_for_new_users).start()
