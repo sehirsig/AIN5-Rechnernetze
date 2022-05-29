@@ -78,7 +78,7 @@ def send_chat_request(ip, port):
     #Send Request
     udp_sock.sendto(paket, (chat_IP, chat_PORT))
     #Wait for TCP Answer
-    print('Listening on Port ', My_PORT, ' for incoming TCP connections')
+    print('Listening on Port ', str(my_port), ' for incoming TCP connections')
     sock.listen(1)
     print('Listening ...')
 
