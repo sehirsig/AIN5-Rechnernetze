@@ -2,18 +2,21 @@ import socket
 import struct
 import time
 import numpy as np
+from threading import Thread
 
-NOTIFY_NEW_USER_COMMAND = 1
+EXIT_COMMAND = 2
+NOTIFY_REGISTERED_USER_COMMAND = 3
+NOTIFY_UNREGISTERED_USER_COMMAND = 4
 
 client_list = []  # [Spitzname, IP-Adresse, Port, Socket]
 
 My_IP = '127.0.0.1'
 My_PORT = 50000
-server_activity_period = 100;
+server_activity_period = 100
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((My_IP, My_PORT))
-print('Listening on Port ', My_PORT, ' for incoming TCP connections');
+print('Listening on Port ', My_PORT, ' for incoming TCP connections')
 
 t_end = time.time() + server_activity_period  # Ende der Aktivitätsperiode
 
@@ -63,6 +66,15 @@ def notify_others(new_user):
         notify_user(user, LIMIT)
 
 
+def routine_search_for_clients(idx, conn):
+    data = conn.recv(1024)
+    cmd = int.from_bytes(data[0:4], 'big')
+    if cmd == EXIT_COMMAND:
+        conn.close()
+        c = client_list.pop(idx)
+        print("Client exited: " + c[0])
+
+
 while True:
     try:
         conn, addr = sock.accept()
@@ -78,6 +90,7 @@ while True:
         #ip = make_bytes_from_ip(addr[0])
         new_user = (nickname, ipv4, udp_port, conn)
         client_list.append(new_user)
+        Thread(target=routine_search_for_clients, args=(len(client_list) - 1, conn)).start()
         notify_others(new_user)
     except socket.timeout:
         print('Socket timed out listening', time.asctime())

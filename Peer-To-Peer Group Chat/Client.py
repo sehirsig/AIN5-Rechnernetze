@@ -1,7 +1,10 @@
 import socket
-from threading import Thread
+from threading import Thread, Lock
 
 NOTIFY_NEW_USER_COMMAND = 1
+EXIT_COMMAND = 2
+
+input_lock = Lock()
 
 user_list = []
 
@@ -17,7 +20,10 @@ sock.settimeout(100)
 print('Connecting to TCP server with IP ', Server_IP, ' on Port ', Server_PORT)
 sock.connect((Server_IP, Server_PORT))
 print("Spitzname eingeben:")
+
+input_lock.acquire()
 nickname = input()
+input_lock.release()
 
 #Paket:
 # 1 Byte - Type
@@ -54,6 +60,7 @@ def get_ip_from_bytes(ip):
     res += str(ip[3])
     return res
 
+
 #UDP Call von A zu B (B wird mit TCP connect antworten)
 def send_chat_request(ip, port):
     chat_IP = ip #'127.0.0.1'
@@ -63,6 +70,7 @@ def send_chat_request(ip, port):
     MESSAGE = my_port.to_bytes(4, 'big')
     udp_sock.sendto(MESSAGE, (chat_IP, chat_PORT))
 
+
 def receive_chat_request():
     chat_TCP_port, (chat_UDP_PORT, chat_IP) = udp_sock.recv(4)
     length = int.from_bytes(chat_TCP_port[0:4], 'big')
@@ -70,6 +78,7 @@ def receive_chat_request():
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     chat_socket.settimeout(100)
     chat_socket.connect((chat_IP, chat_TCP_port))
+
 
 def routine_wait_for_new_users():
     while True:
@@ -84,4 +93,16 @@ def routine_wait_for_new_users():
         print("new User\n" + nickname)
 
 
+def routine_user_input():
+    while True:
+        input_lock.acquire()
+        s = input()
+        input_lock.release()
+        if s == "exit":
+            paket = EXIT_COMMAND.to_bytes(4, 'big')
+            sock.send(paket)
+            sock.close()
+
+
 Thread(target=routine_wait_for_new_users).start()
+Thread(target=routine_user_input).start()
