@@ -1,4 +1,5 @@
 import socket
+import struct
 import time
 import numpy as np
 
@@ -67,12 +68,15 @@ while True:
         conn, addr = sock.accept()
         print('Incoming connection accepted: ', addr)
         data = conn.recv(1024)
-        length = int.from_bytes(data[0:4], 'big')
-        nickname = data[4: length - 4].decode("utf8")
-        udp_port = int.from_bytes(data[length - 4: length], 'big')
+        msg_type = int(data[0])
+        ##TODO If Statement msg_type checken
+        length = int.from_bytes(data[1:5], 'big') #+ the MSG_Type
+        nickname = data[5: 5 + length].decode("utf8")
+        ipv4 = struct.unpack('BBBB', data[5 + length:5 + length + 4])
+        udp_port = int.from_bytes(data[5 + length + 4: 5 + length + 4 + 4], 'big')
         print("client accepted: " + nickname)
-        ip = make_bytes_from_ip(addr[0])
-        new_user = (nickname, ip, udp_port, conn)
+        #ip = make_bytes_from_ip(addr[0])
+        new_user = (nickname, ipv4, udp_port, conn)
         client_list.append(new_user)
         notify_others(new_user)
     except socket.timeout:

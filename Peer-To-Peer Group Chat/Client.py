@@ -19,13 +19,29 @@ sock.connect((Server_IP, Server_PORT))
 print("Spitzname eingeben:")
 nickname = input()
 
+#Paket:
+# 1 Byte - Type
+# msg_type = 1.to_bytes(1, 'big')
+# msgtype + nickname-lenght + nickname + IPv4 + Port(4-bit uint)
+#
+#
+msg_num = 1
+msg_type = msg_num.to_bytes(1, 'big')
+print(msg_type)
+
 
 def send_initial_package():
+    msg_num = 1
+    msg_type = msg_num.to_bytes(1, 'big')
     nickname_b = nickname.encode('utf-8')
-    port_b = udp_sock.getsockname()[1].to_bytes(4, 'big')
-    length_b = (len(nickname_b) + 8).to_bytes(4, 'big')  # +8 für Portnummer und Länge
-    paket = length_b + nickname_b + port_b
+    nickname_length = len(nickname_b).to_bytes(4, 'big')
+    ipv4, port = udp_sock.getsockname()#.to_bytes(4, 'big')
+    ipv4_b = socket.inet_aton(ipv4)
+    port_b = port.to_bytes(4, 'big')
+    paket = msg_type + nickname_length + nickname_b + ipv4_b + port_b
     sock.send(paket)
+    print("bytes: " + str(paket))
+    print("Send!")
 
 
 send_initial_package()
@@ -60,8 +76,8 @@ def routine_wait_for_new_users():
         # command = struct.unpack("i", sock.recv(4))
         # if command == NOTIFY_NEW_USER_COMMAND:
         paket = sock.recv(1024)
-        length = int.from_bytes(paket[0:4], 'big')
-        nickname = paket[4:length - 8].decode("utf8")
+        length = int.from_bytes(paket[1:5], 'big') + 1
+        nickname = paket[5:length - 8].decode("utf8")
         ip = get_ip_from_bytes(paket[length - 8: length - 4])
         port = int.from_bytes(paket[length - 4:length], 'big')
         user_list.append((nickname, ip, port))
