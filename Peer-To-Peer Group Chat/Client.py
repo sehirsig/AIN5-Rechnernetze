@@ -47,13 +47,13 @@ def send_chat_request(ip, port):
     MESSAGE = my_port.to_bytes(4, 'big')
     udp_sock.sendto(MESSAGE, (chat_IP, chat_PORT))
 
-
 def receive_chat_request():
-    chat_IP = 2 #TODO: Woher bekommen wir die Chat IP vom sender der UDP Nachricht?
-    chat_PORT = udp_sock.recv(4)
+    chat_TCP_port, (chat_UDP_PORT, chat_IP) = udp_sock.recv(4)
+    length = int.from_bytes(chat_TCP_port[0:4], 'big')
+    chat_TCP_port = int.from_bytes(chat_TCP_port[length - 4: length], 'big')
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     chat_socket.settimeout(100)
-    sock.connect((chat_IP, chat_PORT))
+    chat_socket.connect((chat_IP, chat_TCP_port))
 
 def routine_wait_for_new_users():
     while True:
