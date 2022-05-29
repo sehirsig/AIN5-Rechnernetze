@@ -84,7 +84,7 @@ def send_chat_request(ip, port):
 
 
 def receive_chat_request():
-    paket, (chat_UDP_PORT, chat_IP) = udp_sock.recv(4)
+    paket, (chat_IP,chat_UDP_PORT) = udp_sock.recv(4)
     msg_type = int(paket[0])
     chat_TCP_port = int.from_bytes(paket[1:5], 'big')
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
