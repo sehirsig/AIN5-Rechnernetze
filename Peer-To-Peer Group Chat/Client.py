@@ -1,4 +1,5 @@
 import socket
+import random
 from threading import Thread, Lock
 
 NOTIFY_NEW_USER_COMMAND = 1
@@ -68,6 +69,7 @@ def send_chat_request(ip, port):
     #Open a TCP Socket
     my_ip, my_port = sock.getsockname()
     new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    my_port = my_port + random.randint(1, 999)
     new_socket.bind((my_ip, my_port))
     msg_num = 5
     msg_type_b = msg_num.to_bytes(1, 'big')
