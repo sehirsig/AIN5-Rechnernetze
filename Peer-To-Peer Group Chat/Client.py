@@ -38,13 +38,13 @@ print(msg_type)
 
 def send_initial_package():
     msg_num = 1
-    msg_type = msg_num.to_bytes(1, 'big')
+    msg_type_b = msg_num.to_bytes(1, 'big')
     nickname_b = nickname.encode('utf-8')
     nickname_length = len(nickname_b).to_bytes(4, 'big')
     ipv4, port = udp_sock.getsockname()#.to_bytes(4, 'big')
     ipv4_b = socket.inet_aton(ipv4)
     port_b = port.to_bytes(4, 'big')
-    paket = msg_type + nickname_length + nickname_b + ipv4_b + port_b
+    paket = msg_type_b + nickname_length + nickname_b + ipv4_b + port_b
     sock.send(paket)
     print("bytes: " + str(paket))
     print("Send!")
@@ -65,16 +65,26 @@ def get_ip_from_bytes(ip):
 def send_chat_request(ip, port):
     chat_IP = ip #'127.0.0.1'
     chat_PORT = port #50000
+    #Open a TCP Socket
     my_ip, my_port = sock.getsockname()
-    #TODO: Problem. An erster Steller sollte MessageType stehen! Dann erst der Port.
-    MESSAGE = my_port.to_bytes(4, 'big')
-    udp_sock.sendto(MESSAGE, (chat_IP, chat_PORT))
+    new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    new_socket.bind((my_ip, my_port))
+    msg_num = 5
+    msg_type_b = msg_num.to_bytes(1, 'big')
+    my_port_b = my_port.to_bytes(4, 'big')
+    paket = msg_type_b + my_port_b
+    #Send Request
+    udp_sock.sendto(paket, (chat_IP, chat_PORT))
+    #Wait for TCP Answer
+    print('Listening on Port ', My_PORT, ' for incoming TCP connections')
+    sock.listen(1)
+    print('Listening ...')
 
 
 def receive_chat_request():
-    chat_TCP_port, (chat_UDP_PORT, chat_IP) = udp_sock.recv(4)
-    length = int.from_bytes(chat_TCP_port[0:4], 'big')
-    chat_TCP_port = int.from_bytes(chat_TCP_port[length - 4: length], 'big')
+    paket, (chat_UDP_PORT, chat_IP) = udp_sock.recv(4)
+    msg_type = int(paket[0])
+    chat_TCP_port = int.from_bytes(paket[1:5], 'big')
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     chat_socket.settimeout(100)
     chat_socket.connect((chat_IP, chat_TCP_port))
