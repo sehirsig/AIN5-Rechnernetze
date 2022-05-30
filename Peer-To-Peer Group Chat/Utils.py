@@ -1,6 +1,11 @@
 import numpy as np
 
 
+EXIT_COMMAND = 1
+NOTIFY_REGISTERED_USER_COMMAND = 2
+NOTIFY_UNREGISTERED_USER_COMMAND = 3
+
+
 def make_bytes_from_ip_int_array(l):
     def check():
         if len(l) != 4:

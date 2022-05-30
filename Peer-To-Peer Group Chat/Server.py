@@ -4,10 +4,6 @@ import time
 from threading import Thread
 from Utils import *
 
-EXIT_COMMAND = 2
-NOTIFY_REGISTERED_USER_COMMAND = 3
-NOTIFY_UNREGISTERED_USER_COMMAND = 4
-
 client_list = []  # [Spitzname, IP-Adresse, Port, Socket]
 
 My_IP = '127.0.0.1'
@@ -24,14 +20,14 @@ sock.listen(1)
 print('Listening ...')
 
 
-
 def notify_user(new_user, user_index):
+    cmd = NOTIFY_REGISTERED_USER_COMMAND.to_bytes(4, 'big')
     nickname = new_user[0].encode("utf8")
     ip = make_bytes_from_ip_int_array(new_user[1])
     port = new_user[2].to_bytes(4, 'big')
     conn = client_list[user_index][3]
-    paket_length = (len(nickname) + 12).to_bytes(4, 'big')  # zusätzlich Länge von IP, Port und Paketlänge selbst
-    paket = paket_length + nickname + ip + port
+    paket_length = (len(nickname) + 16).to_bytes(4, 'big')  # zusätzlich Länge von IP, Port und Paketlänge selbst
+    paket = paket_length + cmd + nickname + ip + port
     conn.send(paket)
 
 
@@ -62,12 +58,12 @@ while True:
         data = conn.recv(1024)
         msg_type = int(data[0])
         ##TODO If Statement msg_type checken
-        length = int.from_bytes(data[1:5], 'big') #+ the MSG_Type
+        length = int.from_bytes(data[1:5], 'big')  # + the MSG_Type
         nickname = data[5: 5 + length].decode("utf8")
         ipv4 = struct.unpack('BBBB', data[5 + length:5 + length + 4])
         udp_port = int.from_bytes(data[5 + length + 4: 5 + length + 4 + 4], 'big')
         print("client accepted: " + nickname)
-        #ip = make_bytes_from_ip(addr[0])
+        # ip = make_bytes_from_ip(addr[0])
         new_user = (nickname, ipv4, udp_port, conn)
         client_list.append(new_user)
         Thread(target=routine_search_for_clients, args=(len(client_list) - 1, conn)).start()

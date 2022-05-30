@@ -3,9 +3,6 @@ import random
 from threading import Thread, Lock
 from Utils import *
 
-NOTIFY_NEW_USER_COMMAND = 1
-EXIT_COMMAND = 2
-
 input_lock = Lock()
 
 user_list = []
@@ -27,7 +24,7 @@ input_lock.acquire()
 nickname = input()
 input_lock.release()
 
-#Paket:
+# Paket:
 # 1 Byte - Type
 # msg_type = 1.to_bytes(1, 'big')
 # msgtype + nickname-lenght + nickname + IPv4 + Port(4-bit uint)
@@ -43,8 +40,8 @@ def send_initial_package():
     msg_type_b = msg_num.to_bytes(1, 'big')
     nickname_b = nickname.encode('utf-8')
     nickname_length = len(nickname_b).to_bytes(4, 'big')
-    ipv4, port = udp_sock.getsockname()#.to_bytes(4, 'big')
-    ipv4_b = make_bytes_from_ip_str(Server_IP) # server ip is firtsly the same like client ip
+    ipv4, port = udp_sock.getsockname()  # .to_bytes(4, 'big')
+    ipv4_b = make_bytes_from_ip_str(Server_IP)  # server ip is firtsly the same like client ip
     port_b = port.to_bytes(4, 'big')
     paket = msg_type_b + nickname_length + nickname_b + ipv4_b + port_b
     sock.send(paket)
@@ -63,11 +60,11 @@ def get_ip_from_bytes(ip):
     return res
 
 
-#UDP Call von A zu B (B wird mit TCP connect antworten)
+# UDP Call von A zu B (B wird mit TCP connect antworten)
 def send_chat_request(ip, port):
-    chat_IP = ip #'127.0.0.1'
-    chat_PORT = port #50000
-    #Open a TCP Socket
+    chat_IP = ip  # '127.0.0.1'
+    chat_PORT = port  # 50000
+    # Open a TCP Socket
     my_ip, my_port = sock.getsockname()
     new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     my_port = my_port + random.randint(1, 999)
@@ -76,16 +73,16 @@ def send_chat_request(ip, port):
     msg_type_b = msg_num.to_bytes(1, 'big')
     my_port_b = my_port.to_bytes(4, 'big')
     paket = msg_type_b + my_port_b
-    #Send Request
+    # Send Request
     udp_sock.sendto(paket, (chat_IP, chat_PORT))
-    #Wait for TCP Answer
+    # Wait for TCP Answer
     print('Listening on Port ', str(my_port), ' for incoming TCP connections')
     sock.listen(1)
     print('Listening ...')
 
 
 def receive_chat_request():
-    paket, (chat_IP,chat_UDP_PORT) = udp_sock.recv(4)
+    paket, (chat_IP, chat_UDP_PORT) = udp_sock.recv(4)
     msg_type = int(paket[0])
     chat_TCP_port = int.from_bytes(paket[1:5], 'big')
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -98,8 +95,9 @@ def routine_wait_for_new_users():
         # command = struct.unpack("i", sock.recv(4))
         # if command == NOTIFY_NEW_USER_COMMAND:
         paket = sock.recv(1024)
-        length = int.from_bytes(paket[0:4], 'big') + 1
-        nickname = paket[4:length - 12].decode("utf8")
+        length = int.from_bytes(paket[0:4], 'big')
+        cmd = int.from_bytes(paket[4:8], 'big')
+        nickname = paket[8:length - 8].decode("utf8")
         ip = get_ip_from_bytes(paket[length - 8: length - 4])
         port = int.from_bytes(paket[length - 4:length], 'big')
         user_list.append((nickname, ip, port))
