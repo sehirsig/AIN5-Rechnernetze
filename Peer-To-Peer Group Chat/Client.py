@@ -7,8 +7,8 @@ input_lock = Lock()
 
 user_list = []
 
-Server_IP = '172.20.155.201'
-Server_PORT = 5079
+Server_IP = '127.0.0.1'
+Server_PORT = 50000
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -18,9 +18,9 @@ udp_sock.sendto("".encode('utf-8'),
 sock.settimeout(10000)
 print('Connecting to TCP server with IP ', Server_IP, ' on Port ', Server_PORT)
 sock.connect((Server_IP, Server_PORT))
-print("Spitzname eingeben:")
 
 input_lock.acquire()
+print("Spitzname eingeben:")
 nickname = input()
 input_lock.release()
 
@@ -86,7 +86,13 @@ def receive_chat_request():
     paket, (chat_IP, chat_UDP_PORT) = udp_sock.recv(8)
     msg_type = int(paket[0])
     chat_TCP_port = int.from_bytes(paket[1:5], 'big')
-    #TODO: Question with Enter, do you want to chat with this person? (READ)
+    input_lock.acquire()
+    print("Incoming request from: " + str(chat_IP) + "\nDo you want to start the chat? (type 'y' to accept)")
+    result = input()
+    input_lock.release()
+    if (result != "y"):
+        print("Chat request refused!")
+        return
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     chat_socket.settimeout(100)
     chat_socket.connect((chat_IP, chat_TCP_port))
@@ -166,6 +172,7 @@ def send_broad_cast(msg):
 def routine_user_input():
     while True:
         input_lock.acquire()
+        print("Routine: (exit/broadcast/rqstchat/showlist)")
         s = input()
         input_lock.release()
         if s == "exit":
@@ -175,9 +182,27 @@ def routine_user_input():
             exit(0)
         elif s == "broadcast":
             input_lock.acquire()
+            print("Type a message to broadcast:")
             msg = input()
             input_lock.release()
             send_broad_cast(msg)
+        elif s == "showlist":
+            counter = 0
+            for users in user_list:
+                print(str(counter) + str(users))
+                counter += 1
+        elif s == "rqstchat":
+            input_lock.acquire()
+            print("Type a usernum to request a chat to:")
+            receiver = int(input())
+            input_lock.release()
+            if (receiver >= len(user_list) or receiver < 0):
+                print(f"User {str(receiver)} does not exist!")
+                continue
+            receiver_ip = user_list[receiver][1] #(nickname, ip, port)
+            receiver_udp_port = user_list[receiver][2]
+            send_chat_request(receiver_ip, receiver_udp_port)
+
 
 
 Thread(target=routine_wait_for_new_users).start()
