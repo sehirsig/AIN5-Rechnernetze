@@ -109,6 +109,16 @@ def receive_broad_cast(data):
     print_broadcast_msg(data)
 
 
+def print_register_response(paket):
+    len_nickname = int.from_bytes(paket[4:8], 'big')
+    start_nickname = 8
+    end_nickname = start_nickname + len_nickname
+    nickname = paket[start_nickname: end_nickname].decode("utf8")
+    ip = get_ip_from_bytes(paket[end_nickname: end_nickname + 4])
+    udp_port = int.from_bytes(paket[end_nickname + 4 : end_nickname + 8], 'big')
+    print("register-response:\nnickname: " + nickname + "; ip: " + ip + "; udp_port: " + str(udp_port))
+
+
 def routine_wait_for_new_users():
     while True:
         paket = sock.recv(1024)
@@ -121,6 +131,8 @@ def routine_wait_for_new_users():
             remove_user(paket, length)
         elif cmd == BROADCAST_COMMAND:
             receive_broad_cast(paket)
+        elif cmd == REGISTER_RESPONSE_COMMAND:
+            print_register_response(paket)
 
 
 def send_broad_cast(msg):

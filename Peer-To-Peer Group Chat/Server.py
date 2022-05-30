@@ -71,6 +71,16 @@ def routine_search_for_clients(idx, conn):
         broadcast(data)
 
 
+def make_register_response(new_user):
+    cmd_b = REGISTER_RESPONSE_COMMAND.to_bytes(4, 'big')
+    len_nickname_b = len(nickname).to_bytes(4, 'big')
+    nickname_b = new_user[0].encode("utf8")
+    ipv4_b = make_bytes_from_ip_int_array(new_user[1])
+    port_b = new_user[2].to_bytes(4, 'big')
+    paket = cmd_b + len_nickname_b + nickname_b + ipv4_b + port_b
+    new_user[3].send(paket)
+
+
 while True:
     try:
         conn, addr = sock.accept()
@@ -89,5 +99,6 @@ while True:
         Thread(target=routine_search_for_clients,
                args=(len(client_list) - 1, conn)).start()  # listen to commands from client
         notify_others_for_new(new_user)
+        make_register_response(new_user)
     except socket.timeout:
         print('Socket timed out listening', time.asctime())
