@@ -1,8 +1,8 @@
 import socket
 import struct
 import time
-import numpy as np
 from threading import Thread
+from Utils import *
 
 EXIT_COMMAND = 2
 NOTIFY_REGISTERED_USER_COMMAND = 3
@@ -24,30 +24,10 @@ sock.listen(1)
 print('Listening ...')
 
 
-def make_bytes_from_ip(ip_str):
-    l = list(map(lambda x: int(x), ip_str.split(".")))
-
-    def check():
-        if len(l) != 4:
-            return False
-        for e in l:
-            if e < 0 | e > 255:
-                return False
-        return True
-
-    if not check():
-        print("ip adress uncorrect")
-        exit(1)
-    return bytes(
-        list(map(
-            lambda x: np.int8(x), l
-        ))
-    )
-
 
 def notify_user(new_user, user_index):
     nickname = new_user[0].encode("utf8")
-    ip = new_user[1]
+    ip = make_bytes_from_ip_int_array(new_user[1])
     port = new_user[2].to_bytes(4, 'big')
     conn = client_list[user_index][3]
     paket_length = (len(nickname) + 12).to_bytes(4, 'big')  # zusätzlich Länge von IP, Port und Paketlänge selbst

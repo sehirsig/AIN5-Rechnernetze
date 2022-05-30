@@ -1,6 +1,7 @@
 import socket
 import random
 from threading import Thread, Lock
+from Utils import *
 
 NOTIFY_NEW_USER_COMMAND = 1
 EXIT_COMMAND = 2
@@ -43,7 +44,7 @@ def send_initial_package():
     nickname_b = nickname.encode('utf-8')
     nickname_length = len(nickname_b).to_bytes(4, 'big')
     ipv4, port = udp_sock.getsockname()#.to_bytes(4, 'big')
-    ipv4_b = socket.inet_aton(ipv4)
+    ipv4_b = make_bytes_from_ip_str(Server_IP) # server ip is firtsly the same like client ip
     port_b = port.to_bytes(4, 'big')
     paket = msg_type_b + nickname_length + nickname_b + ipv4_b + port_b
     sock.send(paket)
@@ -97,8 +98,8 @@ def routine_wait_for_new_users():
         # command = struct.unpack("i", sock.recv(4))
         # if command == NOTIFY_NEW_USER_COMMAND:
         paket = sock.recv(1024)
-        length = int.from_bytes(paket[1:5], 'big') + 1
-        nickname = paket[5:length - 8].decode("utf8")
+        length = int.from_bytes(paket[0:4], 'big') + 1
+        nickname = paket[4:length - 12].decode("utf8")
         ip = get_ip_from_bytes(paket[length - 8: length - 4])
         port = int.from_bytes(paket[length - 4:length], 'big')
         user_list.append((nickname, ip, port))
