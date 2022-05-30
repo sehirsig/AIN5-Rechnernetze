@@ -97,11 +97,12 @@ def routine_wait_for_new_users():
         paket = sock.recv(1024)
         length = int.from_bytes(paket[0:4], 'big')
         cmd = int.from_bytes(paket[4:8], 'big')
-        nickname = paket[8:length - 8].decode("utf8")
-        ip = get_ip_from_bytes(paket[length - 8: length - 4])
-        port = int.from_bytes(paket[length - 4:length], 'big')
-        user_list.append((nickname, ip, port))
-        print("new User\n" + nickname)
+        if cmd == NOTIFY_REGISTERED_USER_COMMAND:
+            nickname = paket[8:length - 8].decode("utf8")
+            ip = get_ip_from_bytes(paket[length - 8: length - 4])
+            port = int.from_bytes(paket[length - 4:length], 'big')
+            user_list.append((nickname, ip, port))
+            print("new User\n" + nickname)
 
 
 def routine_user_input():
