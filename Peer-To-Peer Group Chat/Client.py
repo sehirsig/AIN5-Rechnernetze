@@ -52,12 +52,12 @@ def send_initial_package():
 send_initial_package()
 
 
-def get_ip_from_bytes(ip):
-    res = ""
-    for i in range(3):
-        res += (str(ip[i]) + ".")
-    res += str(ip[3])
-    return res
+def get_user_index(nickname):
+    for i in range(len(user_list)):
+        if user_list[i][0] == nickname:
+            return i
+    print("no such user")
+    exit(1)
 
 
 # UDP Call von A zu B (B wird mit TCP connect antworten)
@@ -90,6 +90,21 @@ def receive_chat_request():
     chat_socket.connect((chat_IP, chat_TCP_port))
 
 
+def new_user(paket, length):
+    nickname = paket[8:length - 8].decode("utf8")
+    ip = get_ip_from_bytes(paket[length - 8: length - 4])
+    port = int.from_bytes(paket[length - 4:length], 'big')
+    user_list.append((nickname, ip, port))
+    print("new User\n" + nickname)
+
+
+def remove_user(paket, length):
+    nickname = paket[8:length].decode("utf8")
+    print("User exited: " + nickname)
+    idx = get_user_index(nickname)
+    user_list.pop(idx)
+
+
 def routine_wait_for_new_users():
     while True:
         # command = struct.unpack("i", sock.recv(4))
@@ -98,11 +113,9 @@ def routine_wait_for_new_users():
         length = int.from_bytes(paket[0:4], 'big')
         cmd = int.from_bytes(paket[4:8], 'big')
         if cmd == NOTIFY_REGISTERED_USER_COMMAND:
-            nickname = paket[8:length - 8].decode("utf8")
-            ip = get_ip_from_bytes(paket[length - 8: length - 4])
-            port = int.from_bytes(paket[length - 4:length], 'big')
-            user_list.append((nickname, ip, port))
-            print("new User\n" + nickname)
+            new_user(paket, length)
+        if cmd == NOTIFY_UNREGISTERED_USER_COMMAND:
+            remove_user(paket, length)
 
 
 def routine_user_input():
@@ -114,6 +127,7 @@ def routine_user_input():
             paket = EXIT_COMMAND.to_bytes(4, 'big')
             sock.send(paket)
             sock.close()
+            exit(0)
 
 
 Thread(target=routine_wait_for_new_users).start()

@@ -20,7 +20,7 @@ sock.listen(1)
 print('Listening ...')
 
 
-def notify_user(new_user, user_index):
+def notify_user_for_new(new_user, user_index):
     cmd = NOTIFY_REGISTERED_USER_COMMAND.to_bytes(4, 'big')
     nickname = new_user[0].encode("utf8")
     ip = make_bytes_from_ip_int_array(new_user[1])
@@ -31,15 +31,25 @@ def notify_user(new_user, user_index):
     conn.send(paket)
 
 
-def notify_others(new_user):
+def notify_others_for_new(new_user):
     LIMIT = len(client_list) - 1
     # bestehende Nutzer informieren
     for i in range(LIMIT):
-        notify_user(new_user, i)
+        notify_user_for_new(new_user, i)
     # neuem Nutzer die bestenden melden
     for i in range(LIMIT):
         user = client_list[i]
-        notify_user(user, LIMIT)
+        notify_user_for_new(user, LIMIT)
+
+
+def notify_others_user_exited(nickname):
+    for i in range(len(client_list)):
+        conn = client_list[i][3]
+        length_b = (len(nickname) + 8).to_bytes(4, 'big')
+        cmd_b = NOTIFY_UNREGISTERED_USER_COMMAND.to_bytes(4, 'big')
+        nickname_b = nickname.encode("utf8")
+        paket = length_b + cmd_b + nickname_b
+        conn.send(paket)
 
 
 def routine_search_for_clients(idx, conn):
@@ -48,7 +58,9 @@ def routine_search_for_clients(idx, conn):
     if cmd == EXIT_COMMAND:
         conn.close()
         c = client_list.pop(idx)
-        print("Client exited: " + c[0])
+        nickname = c[0]
+        print("Client exited: " + nickname)
+        notify_others_user_exited(nickname)
 
 
 while True:
@@ -66,7 +78,7 @@ while True:
         # ip = make_bytes_from_ip(addr[0])
         new_user = (nickname, ipv4, udp_port, conn)
         client_list.append(new_user)
-        Thread(target=routine_search_for_clients, args=(len(client_list) - 1, conn)).start()
-        notify_others(new_user)
+        Thread(target=routine_search_for_clients, args=(len(client_list) - 1, conn)).start() # listen to commands from client
+        notify_others_for_new(new_user)
     except socket.timeout:
         print('Socket timed out listening', time.asctime())
