@@ -1,10 +1,23 @@
 import numpy as np
 
-EXIT_COMMAND = 1
-NOTIFY_REGISTERED_USER_COMMAND = 2
-NOTIFY_UNREGISTERED_USER_COMMAND = 3
-BROADCAST_COMMAND = 4
-REGISTER_RESPONSE_COMMAND = 5
+#1. Register-Request (MsgType, Nickname-Length, Nickname, IPv4, Port)
+#2. Register-Response (MsgType, Anzahl-User, {Nickname-Length, Nickname, IPv4, Port})
+#3. Add-User (MsgType, Nickname-Length, Nickname, IPv4, Port)
+#4. Chat-Request  (MsgType, tcp-port)
+#5. Broadcast-MSG (send to server) (MsgType, Message-Length, Message)
+#6. Broadcast (from server) (MsgType, Nickname-Length, Nickname, Message-Length, Message)
+#7. DeRegister (MsgType ?)
+#8. Remove-User (MsgType, Nickname-Length, Nickname)
+
+EXIT_COMMAND = 0
+REGISTER_REQUEST = 1
+REGISTER_RESPONSE = 2
+ADD_USER = 3
+CHAT_REQUEST = 4
+BROADCAST_MSG = 5
+BROADCAST = 6
+DEREGISTER = 7
+REMOVE_USER = 8
 
 
 def make_bytes_from_ip_int_array(l):
