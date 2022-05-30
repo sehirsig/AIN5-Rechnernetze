@@ -27,7 +27,7 @@ def notify_user_for_new(new_user, user_index):
     port = new_user[2].to_bytes(4, 'big')
     conn = client_list[user_index][3]
     paket_length = (len(nickname) + 16).to_bytes(4, 'big')  # zusätzlich Länge von IP, Port und Paketlänge selbst
-    paket = paket_length + cmd + nickname + ip + port
+    paket = cmd + paket_length + nickname + ip + port
     conn.send(paket)
 
 
@@ -48,8 +48,14 @@ def notify_others_user_exited(nickname):
         length_b = (len(nickname) + 8).to_bytes(4, 'big')
         cmd_b = NOTIFY_UNREGISTERED_USER_COMMAND.to_bytes(4, 'big')
         nickname_b = nickname.encode("utf8")
-        paket = length_b + cmd_b + nickname_b
+        paket = cmd_b + length_b + nickname_b
         conn.send(paket)
+
+
+def broadcast(data):
+    print_broadcast_msg(data)
+    for i in range(len(client_list)):
+        client_list[i][3].send(data)
 
 
 def routine_search_for_clients(idx, conn):
@@ -61,6 +67,8 @@ def routine_search_for_clients(idx, conn):
         nickname = c[0]
         print("Client exited: " + nickname)
         notify_others_user_exited(nickname)
+    elif cmd == BROADCAST_COMMAND:
+        broadcast(data)
 
 
 while True:
@@ -78,7 +86,8 @@ while True:
         # ip = make_bytes_from_ip(addr[0])
         new_user = (nickname, ipv4, udp_port, conn)
         client_list.append(new_user)
-        Thread(target=routine_search_for_clients, args=(len(client_list) - 1, conn)).start() # listen to commands from client
+        Thread(target=routine_search_for_clients,
+               args=(len(client_list) - 1, conn)).start()  # listen to commands from client
         notify_others_for_new(new_user)
     except socket.timeout:
         print('Socket timed out listening', time.asctime())

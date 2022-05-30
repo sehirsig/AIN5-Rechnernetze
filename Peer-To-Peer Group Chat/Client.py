@@ -105,17 +105,32 @@ def remove_user(paket, length):
     user_list.pop(idx)
 
 
+def receive_broad_cast(data):
+    print_broadcast_msg(data)
+
+
 def routine_wait_for_new_users():
     while True:
-        # command = struct.unpack("i", sock.recv(4))
-        # if command == NOTIFY_NEW_USER_COMMAND:
         paket = sock.recv(1024)
-        length = int.from_bytes(paket[0:4], 'big')
-        cmd = int.from_bytes(paket[4:8], 'big')
+        cmd = int.from_bytes(paket[0:4], 'big')
         if cmd == NOTIFY_REGISTERED_USER_COMMAND:
+            length = int.from_bytes(paket[4:8], 'big')
             new_user(paket, length)
-        if cmd == NOTIFY_UNREGISTERED_USER_COMMAND:
+        elif cmd == NOTIFY_UNREGISTERED_USER_COMMAND:
+            length = int.from_bytes(paket[4:8], 'big')
             remove_user(paket, length)
+        elif cmd == BROADCAST_COMMAND:
+            receive_broad_cast(paket)
+
+
+def send_broad_cast(msg):
+    cmd_b = BROADCAST_COMMAND.to_bytes(4, 'big')
+    len_nickname_b = len(nickname).to_bytes(4, 'big')
+    nickname_b = nickname.encode("utf8")
+    len_msg_b = len(msg).to_bytes(4, 'big')
+    msg_b = msg.encode("utf8")
+    paket = cmd_b + len_nickname_b + nickname_b + len_msg_b + msg_b
+    sock.send(paket)
 
 
 def routine_user_input():
@@ -128,6 +143,11 @@ def routine_user_input():
             sock.send(paket)
             sock.close()
             exit(0)
+        elif s == "broadcast":
+            input_lock.acquire()
+            msg = input()
+            input_lock.release()
+            send_broad_cast(msg)
 
 
 Thread(target=routine_wait_for_new_users).start()
