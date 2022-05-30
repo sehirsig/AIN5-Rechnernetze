@@ -7,8 +7,8 @@ input_lock = Lock()
 
 user_list = []
 
-Server_IP = '127.0.0.1'
-Server_PORT = 50000
+Server_IP = '172.20.155.201'
+Server_PORT = 5079
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -83,9 +83,10 @@ def send_chat_request(ip, port):
 
 
 def receive_chat_request():
-    paket, (chat_IP, chat_UDP_PORT) = udp_sock.recv(4)
+    paket, (chat_IP, chat_UDP_PORT) = udp_sock.recv(8)
     msg_type = int(paket[0])
     chat_TCP_port = int.from_bytes(paket[1:5], 'big')
+    #TODO: Question with Enter, do you want to chat with this person? (READ)
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     chat_socket.settimeout(100)
     chat_socket.connect((chat_IP, chat_TCP_port))
@@ -181,3 +182,4 @@ def routine_user_input():
 
 Thread(target=routine_wait_for_new_users).start()
 Thread(target=routine_user_input).start()
+Thread(target=receive_chat_request).start()
