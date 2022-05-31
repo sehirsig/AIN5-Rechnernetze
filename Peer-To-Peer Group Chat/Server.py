@@ -23,7 +23,7 @@ print('Listening ...')
 def notify_others_user_exited(nickname):
     for i in range(len(client_list)):
         conn = client_list[i][3]
-        cmd_b = DEREGISTER.to_bytes(1, 'big')
+        cmd_b = REMOVE_USER.to_bytes(1, 'big')
         length_b = len(nickname).to_bytes(1, 'big')
         nickname_b = nickname.encode("utf8")
         paket = cmd_b + length_b + nickname_b
@@ -52,7 +52,7 @@ def broadcast(conn, data):  # (nickname, ipv4, udp_port, conn)
 def routine_listen_to_clients(idx, conn):
     data = conn.recv(1024)
     cmd = int.from_bytes(data[0:1], 'big')
-    if cmd == EXIT_COMMAND:
+    if cmd == DEREGISTER:
         nickname = client_list[idx][0]
         print("Client exited: " + nickname)
         notify_others_user_exited(nickname)

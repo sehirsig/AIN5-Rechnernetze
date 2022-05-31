@@ -186,10 +186,11 @@ def routine_listen_to_server():
         if cmd == ADD_USER:
             length = int.from_bytes(paket[1:2], 'big')
             new_user(paket, length)
-        elif cmd == DEREGISTER:
+        elif cmd == REMOVE_USER:
             length = int.from_bytes(paket[1:2], 'big')
             nickname = paket[2: 2 + length].decode("utf8")
             if nickname == my_nickname:
+
                 sock.close()
                 import os
                 os._exit(0)
@@ -230,7 +231,7 @@ def routine_user_input():
         s = input()
         input_lock.release()
         if s == "exit":
-            paket = EXIT_COMMAND.to_bytes(1, 'big')
+            paket = DEREGISTER.to_bytes(1, 'big')
             sock.send(paket)
         elif s == "broadcast":
             input_lock.acquire()
