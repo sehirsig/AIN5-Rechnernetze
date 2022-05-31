@@ -20,7 +20,7 @@ udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 #                (Server_IP, Server_PORT))  # Dummy-Nachricht, damit dieser Socket einen Lokal-Port bekommt
 
 My_IP = "127.0.0.1"
-My_PORT = 50001
+My_PORT = 50002
 udp_sock.bind((My_IP, My_PORT))
 
 sock.settimeout(10000)

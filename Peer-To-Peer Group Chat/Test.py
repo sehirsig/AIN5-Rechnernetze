@@ -1,5 +1,6 @@
 import struct
 import numpy as np
+import socket
 
 s = "dffsfhdksdppo".encode("utf8")
 a = struct.pack("i"*len(s), *s)
@@ -19,3 +20,15 @@ ip_int_list = bytes(
 )
 for i in range(len(ip_int_list)):
     print(int(ip_int_list[i]))
+
+
+Server_IP = '127.0.0.1'
+Server_PORT = 50555
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+sock.settimeout(10000)
+print('Connecting to TCP server with IP ', Server_IP, ' on Port ', Server_PORT)
+sock.connect((Server_IP, Server_PORT))
+
+sock.close()
