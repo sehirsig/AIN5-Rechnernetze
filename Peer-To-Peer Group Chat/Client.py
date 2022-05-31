@@ -189,6 +189,11 @@ def routine_listen_to_server():
         elif cmd == REMOVE_USER:
             length = int.from_bytes(paket[1:2], 'big')
             nickname = paket[2: 2 + length].decode("utf8")
+
+            for chats in range(len(chat_list)):
+                if chat_list[chats][0] == nickname:
+                    chat_list.pop(chats)
+
             if nickname == my_nickname:
 
                 sock.close()
