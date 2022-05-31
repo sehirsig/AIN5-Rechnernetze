@@ -49,15 +49,15 @@ def broadcast(conn, data):  # (nickname, ipv4, udp_port, conn)
         client_list[i][3].send(new_paket)
 
 
-def routine_search_for_clients(idx, conn):
+def routine_listen_to_clients(idx, conn):
     data = conn.recv(1024)
     cmd = int.from_bytes(data[0:1], 'big')
     if cmd == EXIT_COMMAND:
-        conn.close()
-        c = client_list.pop(idx)
-        nickname = c[0]
+        nickname = client_list[idx][0]
         print("Client exited: " + nickname)
         notify_others_user_exited(nickname)
+        client_list.pop(idx)
+        conn.close()
     elif cmd == BROADCAST_MSG:
         print("Received a broadcast")
         broadcast(conn, data)
@@ -125,7 +125,7 @@ while True:
         new_user = (nickname, ipv4, udp_port, conn)
         notify_others_for_new(new_user)
         client_list.append(new_user)
-        Thread(target=routine_search_for_clients,
+        Thread(target=routine_listen_to_clients,
                args=(len(client_list) - 1, conn)).start()  # listen to commands from client
         make_register_response(new_user)
     except socket.timeout:

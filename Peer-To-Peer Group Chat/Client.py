@@ -16,7 +16,7 @@ Server_PORT = 50000
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-#udp_sock.sendto("".encode('utf-8'),
+# udp_sock.sendto("".encode('utf-8'),
 #                (Server_IP, Server_PORT))  # Dummy-Nachricht, damit dieser Socket einen Lokal-Port bekommt
 
 My_IP = "127.0.0.1"
@@ -29,8 +29,9 @@ sock.connect((Server_IP, Server_PORT))
 
 input_lock.acquire()
 print("Spitzname eingeben:")
-nickname = input()
+my_nickname = input()
 input_lock.release()
+
 
 # Paket:
 # 1 Byte - Type
@@ -40,11 +41,10 @@ input_lock.release()
 #
 
 
-
 def send_initial_package():
     msg_num = REGISTER_REQUEST
     msg_type_b = msg_num.to_bytes(1, 'big')
-    nickname_b = nickname.encode('utf-8')
+    nickname_b = my_nickname.encode('utf-8')
     nickname_length = len(nickname_b).to_bytes(1, 'big')
     ipv4, port = udp_sock.getsockname()  # .to_bytes(4, 'big')
     ipv4_b = make_bytes_from_ip_str(Server_IP)  # server ip is firtsly the same like client ip
@@ -80,15 +80,16 @@ def send_chat_request(ip, port, nickname):
     my_port_b = my_port.to_bytes(4, 'big')
     paket = msg_type_b + my_port_b
     # Wait for TCP Answer
-    #print('Listening on Port ', str(my_port), ' for incoming TCP connections')
+    # print('Listening on Port ', str(my_port), ' for incoming TCP connections')
     new_socket.listen(1)
-    #print('Listening ...')
+    # print('Listening ...')
     # Send Request
     udp_sock.sendto(paket, (chat_IP, chat_PORT))
-    #print('Waiting to accept ...')
+    # print('Waiting to accept ...')
     conn, addr = new_socket.accept()
     print(f'Incoming connection with {str(nickname)} accepted: ', addr)
     chat_list.append((nickname, conn))
+
 
 def routine_receive_chat_sendrqst():
     chats = 0
@@ -98,6 +99,7 @@ def routine_receive_chat_sendrqst():
             continue
         print(f"New chat with {str(chat_list[-1][0])} added!")
         Thread(target=receive_chat(chat_list[-1][0], chat_list[-1][1])).start()
+
 
 def receive_chat(nickname, conn):
     while True:
@@ -135,7 +137,7 @@ def routine_receive_chat_request():
     chat_socket.connect((chat_IP, chat_TCP_port))
     print(chat_socket.getsockname())
     chat_list.append((nickname, chat_socket))
-    #Thread(target=receive_chat(nickname,chat_socket)).start()
+    # Thread(target=receive_chat(nickname,chat_socket)).start()
 
 
 def new_user(paket, length):
@@ -146,8 +148,7 @@ def new_user(paket, length):
     print("new User\n" + nickname)
 
 
-def remove_user(paket, length):
-    nickname = paket[2:length].decode("utf8")
+def remove_user(paket, length, nickname):
     print("User exited: " + nickname)
     idx = get_user_index(nickname)
     user_list.pop(idx)
@@ -178,7 +179,7 @@ def print_register_response(paket):
         print("register-response:\nnickname: " + nickname + "; ip: " + ip + "; udp_port: " + str(udp_port))
 
 
-def routine_wait_for_new_users():
+def routine_listen_to_server():
     while True:
         paket = sock.recv(1024)
         cmd = int.from_bytes(paket[0:1], 'big')
@@ -187,7 +188,13 @@ def routine_wait_for_new_users():
             new_user(paket, length)
         elif cmd == DEREGISTER:
             length = int.from_bytes(paket[1:2], 'big')
-            remove_user(paket, length)
+            nickname = paket[2: 2 + length].decode("utf8")
+            if nickname == my_nickname:
+                sock.close()
+                import os
+                os._exit(0)
+
+            remove_user(paket, length, nickname)
         elif cmd == BROADCAST:
             receive_broad_cast(paket)
         elif cmd == REGISTER_RESPONSE:
@@ -201,15 +208,16 @@ def send_broad_cast(msg):
     paket = cmd_b + len_msg_b + msg_b
     sock.send(paket)
 
+
 def send_message(chat_user):
     input_lock.acquire()
     print("Write your message:")
     MESSAGE = input()
     input_lock.release()
-    #MESSAGE_length_b = len(MESSAGE).to_bytes(1, 'big')
+    # MESSAGE_length_b = len(MESSAGE).to_bytes(1, 'big')
     MESSAGE_b = MESSAGE.encode('utf-8')
-    #paket = MESSAGE_length_b + MESSAGE_b
-    paket=MESSAGE_b
+    # paket = MESSAGE_length_b + MESSAGE_b
+    paket = MESSAGE_b
     chat_user[1].send(paket)
     print(f"Message '{str(MESSAGE)}' send to {str(chat_user[0])}!")
 
@@ -224,8 +232,6 @@ def routine_user_input():
         if s == "exit":
             paket = EXIT_COMMAND.to_bytes(1, 'big')
             sock.send(paket)
-            sock.close()
-            exit(0)
         elif s == "broadcast":
             input_lock.acquire()
             print("Type a message to broadcast:")
@@ -276,8 +282,7 @@ def routine_user_input():
             """)
 
 
-
-Thread(target=routine_wait_for_new_users).start()
+Thread(target=routine_listen_to_server).start()
 Thread(target=routine_user_input).start()
 Thread(target=routine_receive_chat_request).start()
 Thread(target=routine_receive_chat_sendrqst).start()
