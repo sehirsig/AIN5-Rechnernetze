@@ -66,7 +66,7 @@ def get_user_index(nickname):
 
 
 # UDP Call von A zu B (B wird mit TCP connect antworten)
-def send_chat_request(ip, port):
+def send_chat_request(ip, port, nickname):
     chat_IP = ip  # '127.0.0.1'
     chat_PORT = port  # 50000
     # Open a TCP Socket
@@ -74,7 +74,7 @@ def send_chat_request(ip, port):
     new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     my_port = random.randint(50050, 65000)
     new_socket.bind((my_ip, my_port))
-    new_socket.settimeout(15)
+    new_socket.settimeout(10000)
     msg_num = CHAT_REQUEST
     msg_type_b = msg_num.to_bytes(1, 'big')
     my_port_b = my_port.to_bytes(4, 'big')
@@ -86,18 +86,35 @@ def send_chat_request(ip, port):
     # Send Request
     udp_sock.sendto(paket, (chat_IP, chat_PORT))
     print('Waiting to accept ...')
-    conn, addr = sock.accept()
+    conn, addr = new_socket.accept()
     print('Incoming connection accepted: ', addr)
-    data = conn.recv(1024)
-    print(data)
-    # TODO Add to Chat_List
+    chat_list.append((nickname, conn))
+    print("Appended")
+    Thread(target=receive_chat(nickname, conn)).start()
+    print("Appended2")
 
+def receive_chat(nickname, conn):
+    while True:
+
+        paket = conn.recv(1024)
+        msg = paket.decode("utf8")
+        print("New Message!")
+        print(f"{str(nickname)}: {str(msg)}")
 
 def receive_chat_request():
     paket, (chat_IP, chat_UDP_PORT) = udp_sock.recvfrom(8)
     msg_type = int(paket[0])
     chat_TCP_port = int.from_bytes(paket[1:5], 'big')
-    print(f"Received a message request from {str(chat_IP)} with TCP Port {str(chat_TCP_port)}! Type 'sendmsg' to accept/decline")
+
+    nickname = "Unknown"
+    #find out the user
+    for users in user_list: #nickname, ip, port
+        if users[1] == chat_IP:
+            if users[2] == chat_UDP_PORT:
+                nickname = users[0]
+                break
+
+    print(f"Received a message request from {str(nickname)} {str(chat_IP)} with TCP Port {str(chat_TCP_port)}! Type 'skiprtn' to accept/decline")
     input_lock.acquire()
     print("Incoming request from: " + str(chat_IP) + ":" + str(chat_TCP_port) + "\nDo you want to start the chat? (type 'y' to accept)")
     result = input()
@@ -106,16 +123,13 @@ def receive_chat_request():
         print("Chat request refused!")
         return
     chat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    chat_socket.settimeout(100)
+    chat_socket.settimeout(10000)
     print("connect to " + str(chat_IP) + ":" + str(chat_TCP_port))
     chat_socket.connect((chat_IP, chat_TCP_port))
     print(chat_socket.getsockname())
-    #TODO Add to Chat_List
-    MESSAGE = "Moin was geht"
-    MESSAGE_length_b = len(MESSAGE).to_bytes(1, 'big')
-    MESSAGE_b = MESSAGE.encode('utf-8')
-    paket = MESSAGE_length_b + MESSAGE_b
-    chat_socket.send(paket)
+    chat_list.append((nickname, chat_socket))
+    Thread(target=receive_chat(nickname,chat_socket)).start()
+
 
 
 def new_user(paket, length):
@@ -181,11 +195,22 @@ def send_broad_cast(msg):
     paket = cmd_b + len_msg_b + msg_b
     sock.send(paket)
 
+def send_message(chat_user):
+    input_lock.acquire()
+    print("Write your message:")
+    MESSAGE = input()
+    input_lock.release()
+    MESSAGE_length_b = len(MESSAGE).to_bytes(1, 'big')
+    MESSAGE_b = MESSAGE.encode('utf-8')
+    paket = MESSAGE_length_b + MESSAGE_b
+    chat_user[1].send(paket)
+    print(f"Message send to {str(chat_user[0])}!")
 
+#skiprtn to let routine sleep for 2 seconds!
 def routine_user_input():
     while True:
         input_lock.acquire()
-        print("Routine: (exit/broadcast/rqstchat/showlist/sendmsg)")
+        print("Routine: (exit/broadcast/rqstchat/showlist/skiprtn/chatlist/sendmsg/help)")
         s = input()
         input_lock.release()
         if s == "exit":
@@ -215,9 +240,32 @@ def routine_user_input():
             receiver_ip = user_list[receiver][1] #(nickname, ip, port)
             receiver_udp_port = user_list[receiver][2]
             print(f"Sending chat request to {str(user_list[receiver][0])}")
-            send_chat_request(receiver_ip, receiver_udp_port)
-        elif s == "sendmsg":
+            send_chat_request(receiver_ip, receiver_udp_port, str(user_list[receiver][0]))
+            print("FINISHED DEBUG DEBUG FINISHED")
+        elif s == "skiprtn":
             time.sleep(2)
+        elif s == "chatlist":
+            counter = 0
+            for users in chat_list:
+                print(str(counter) + " : "+ str(users))
+                counter += 1
+        elif s == "sendmsg":
+            input_lock.acquire()
+            print("Enter a usernum from chatlist")
+            chatnum = int(input())
+            input_lock.release()
+            send_message(chat_list[chatnum])
+        elif s == "help":
+            print("""
+            Commands:
+            exit
+            broadcast
+            rqstchat
+            showlist
+            skiprtn
+            chatlist
+            sendmsg)
+            """)
 
 
 
