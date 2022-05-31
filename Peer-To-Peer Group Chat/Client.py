@@ -258,13 +258,13 @@ def routine_user_input():
         elif s == "help":
             print("""
             Commands:
-            exit
-            broadcast
-            rqstchat
-            showlist
-            skiprtn
-            chatlist
-            sendmsg)
+            exit - Exit the Server
+            broadcast - Send a message to everyone
+            rqstchat - request a chat from someone in the showlist
+            showlist - all users on the server
+            skiprtn - skip the routine input
+            chatlist - list with all your chats
+            sendmsg - send a message to someone from your chatlist
             """)
 
 
