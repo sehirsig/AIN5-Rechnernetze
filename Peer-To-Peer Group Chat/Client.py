@@ -16,7 +16,7 @@ Server_PORT = 50000
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-#udp_sock.sendto("".encode('utf-8'),
+# udp_sock.sendto("".encode('utf-8'),
 #                (Server_IP, Server_PORT))  # Dummy-Nachricht, damit dieser Socket einen Lokal-Port bekommt
 
 My_IP = "127.0.0.1"
@@ -32,13 +32,13 @@ print("Spitzname eingeben:")
 nickname = input()
 input_lock.release()
 
+
 # Paket:
 # 1 Byte - Type
 # msg_type = 1.to_bytes(1, 'big')
 # msgtype + nickname-lenght + nickname + IPv4 + Port(4-bit uint)
 #
 #
-
 
 
 def send_initial_package():
@@ -93,30 +93,33 @@ def send_chat_request(ip, port, nickname):
     Thread(target=receive_chat(nickname, conn)).start()
     print("Appended2")
 
+
 def receive_chat(nickname, conn):
     while True:
-
         paket = conn.recv(1024)
         msg = paket.decode("utf8")
         print("New Message!")
         print(f"{str(nickname)}: {str(msg)}")
 
-def receive_chat_request():
+
+def routine_receive_chat_request():
     paket, (chat_IP, chat_UDP_PORT) = udp_sock.recvfrom(8)
     msg_type = int(paket[0])
     chat_TCP_port = int.from_bytes(paket[1:5], 'big')
 
     nickname = "Unknown"
-    #find out the user
-    for users in user_list: #nickname, ip, port
+    # find out the user
+    for users in user_list:  # nickname, ip, port
         if users[1] == chat_IP:
             if users[2] == chat_UDP_PORT:
                 nickname = users[0]
                 break
 
-    print(f"Received a message request from {str(nickname)} {str(chat_IP)} with TCP Port {str(chat_TCP_port)}! Type 'skiprtn' to accept/decline")
+    print(
+        f"Received a message request from {str(nickname)} {str(chat_IP)} with TCP Port {str(chat_TCP_port)}! Type 'skiprtn' to accept/decline")
     input_lock.acquire()
-    print("Incoming request from: " + str(chat_IP) + ":" + str(chat_TCP_port) + "\nDo you want to start the chat? (type 'y' to accept)")
+    print("Incoming request from: " + str(chat_IP) + ":" + str(
+        chat_TCP_port) + "\nDo you want to start the chat? (type 'y' to accept)")
     result = input()
     input_lock.release()
     if (result != "y"):
@@ -128,14 +131,13 @@ def receive_chat_request():
     chat_socket.connect((chat_IP, chat_TCP_port))
     print(chat_socket.getsockname())
     chat_list.append((nickname, chat_socket))
-    Thread(target=receive_chat(nickname,chat_socket)).start()
-
+    Thread(target=receive_chat(nickname, chat_socket)).start()
 
 
 def new_user(paket, length):
     nickname = paket[2:length + 2].decode("utf8")
     ip = get_ip_from_bytes(paket[length + 2: length + 6])
-    port = int.from_bytes(paket[length + 6 :length + 10], 'big')
+    port = int.from_bytes(paket[length + 6:length + 10], 'big')
     user_list.append((nickname, ip, port))
     print("new User\n" + nickname)
 
@@ -195,6 +197,7 @@ def send_broad_cast(msg):
     paket = cmd_b + len_msg_b + msg_b
     sock.send(paket)
 
+
 def send_message(chat_user):
     input_lock.acquire()
     print("Write your message:")
@@ -206,7 +209,8 @@ def send_message(chat_user):
     chat_user[1].send(paket)
     print(f"Message send to {str(chat_user[0])}!")
 
-#skiprtn to let routine sleep for 2 seconds!
+
+# skiprtn to let routine sleep for 2 seconds!
 def routine_user_input():
     while True:
         input_lock.acquire()
@@ -227,7 +231,7 @@ def routine_user_input():
         elif s == "showlist":
             counter = 0
             for users in user_list:
-                print(str(counter) + " : "+ str(users))
+                print(str(counter) + " : " + str(users))
                 counter += 1
         elif s == "rqstchat":
             input_lock.acquire()
@@ -237,7 +241,7 @@ def routine_user_input():
             if (receiver >= len(user_list) or receiver < 0):
                 print(f"User {str(receiver)} does not exist!")
                 continue
-            receiver_ip = user_list[receiver][1] #(nickname, ip, port)
+            receiver_ip = user_list[receiver][1]  # (nickname, ip, port)
             receiver_udp_port = user_list[receiver][2]
             print(f"Sending chat request to {str(user_list[receiver][0])}")
             send_chat_request(receiver_ip, receiver_udp_port, str(user_list[receiver][0]))
@@ -247,7 +251,7 @@ def routine_user_input():
         elif s == "chatlist":
             counter = 0
             for users in chat_list:
-                print(str(counter) + " : "+ str(users))
+                print(str(counter) + " : " + str(users))
                 counter += 1
         elif s == "sendmsg":
             input_lock.acquire()
@@ -268,7 +272,6 @@ def routine_user_input():
             """)
 
 
-
 Thread(target=routine_wait_for_new_users).start()
 Thread(target=routine_user_input).start()
-Thread(target=receive_chat_request).start()
+Thread(target=routine_receive_chat_request).start()
