@@ -52,13 +52,8 @@ def get_ip_from_bytes(ip):
     return res
 
 
-def print_broadcast_msg(data):
-    len_nickname = int.from_bytes(data[4:8], 'big')
-    start_nickname = 8
-    end_nickname = start_nickname + len_nickname
-    nickname = data[start_nickname: end_nickname].decode("utf8")
-    start_msg = end_nickname + 4
-    len_msg = int.from_bytes(data[end_nickname: start_msg], 'big')
-    end_msg = start_msg + len_msg
-    msg = data[start_msg: end_msg].decode("utf8")
-    print("broadcast_msg from: " + nickname + ":\n" + msg)
+def print_broadcast_msg(nickname, data):
+    len_msg = int.from_bytes(data[1: 2], 'big')
+    end_msg = 2 + len_msg
+    msg = data[2: end_msg].decode("utf8")
+    print("broadcast_msg from >" + nickname + "<: " + msg)
