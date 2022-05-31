@@ -94,6 +94,9 @@ def send_chat_request(ip, port, nickname):
 def routine_receive_chat_sendrqst():
     chats = 0
     while True:
+        if chats > len(chat_list):
+            chats = len(chat_list)
+            continue;
         if chats == len(chat_list):
             time.sleep(0.1)
             continue
