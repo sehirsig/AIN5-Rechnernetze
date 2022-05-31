@@ -30,7 +30,7 @@ def notify_others_user_exited(nickname):
         conn.send(paket)
 
 
-def broadcast(conn, data): #(nickname, ipv4, udp_port, conn)
+def broadcast(conn, data):  # (nickname, ipv4, udp_port, conn)
     msg_num = BROADCAST
     msg_type_b = msg_num.to_bytes(1, 'big')
     old_msg_b = data[1:]
@@ -39,7 +39,7 @@ def broadcast(conn, data): #(nickname, ipv4, udp_port, conn)
         if conn == client_list[i][3]:
             nickname = client_list[i][0]
             break
-    print_broadcast_msg(nickname,data)
+    print_broadcast_msg(nickname, data)
     nickname_length_b = len(nickname).to_bytes(1, 'big')
     nickname_b = nickname.encode("utf8")
     new_paket = msg_type_b + nickname_length_b + nickname_b + data[1:]
@@ -62,6 +62,7 @@ def routine_search_for_clients(idx, conn):
         print("Received a broadcast")
         broadcast(conn, data)
 
+
 def notify_others_for_new(new_user):
     # bestehende Nutzer informieren
     for users in client_list:
@@ -74,6 +75,7 @@ def notify_others_for_new(new_user):
         paket = cmd + nickname_length + nickname + ip + port
         conn.send(paket)
 
+
 def notify_user_for_new(new_user, user_index):
     cmd = ADD_USER.to_bytes(1, 'big')
     nickname = new_user[0].encode("utf8")
@@ -85,13 +87,13 @@ def notify_user_for_new(new_user, user_index):
     conn.send(paket)
 
 
-def make_register_response(new_user): # (nickname, ipv4, udp_port, conn)
+def make_register_response(new_user):  # (nickname, ipv4, udp_port, conn)
     msg_num = REGISTER_RESPONSE
     msg_type_b = msg_num.to_bytes(1, 'big')
     count_clients = len(client_list)
     nickname_paket_b = bytes()
     for users in client_list:  # (nickname, ipv4, udp_port, conn)
-        if (users[0] == new_user[0]):
+        if users[0] == new_user[0]:
             count_clients -= 1
             continue
         len_nickname_b = len(users[0]).to_bytes(1, 'big')
@@ -106,6 +108,7 @@ def make_register_response(new_user): # (nickname, ipv4, udp_port, conn)
     new_user[3].send(paket)
     print("Register Response Send")
 
+
 while True:
     try:
         conn, addr = sock.accept()
@@ -118,7 +121,7 @@ while True:
         ipv4 = struct.unpack('BBBB', data[2 + length:2 + length + 4])
         udp_port = int.from_bytes(data[2 + length + 4: 2 + length + 4 + 4], 'big')
         print("client accepted: " + nickname)
-        #ipv4 = get_ip_from_bytes(data[5 + length:5 + length + 4])
+        # ipv4 = get_ip_from_bytes(data[5 + length:5 + length + 4])
         new_user = (nickname, ipv4, udp_port, conn)
         notify_others_for_new(new_user)
         client_list.append(new_user)
