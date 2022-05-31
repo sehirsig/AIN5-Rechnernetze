@@ -90,7 +90,7 @@ def send_chat_request(ip, port, nickname):
     print(f'Incoming connection with {str(nickname)} accepted: ', addr)
     chat_list.append((nickname, conn))
 
-def receive_chat_sendrqst():
+def routine_receive_chat_sendrqst():
     chats = 0
     while True:
         if chats == len(chat_list):
@@ -280,4 +280,4 @@ def routine_user_input():
 Thread(target=routine_wait_for_new_users).start()
 Thread(target=routine_user_input).start()
 Thread(target=routine_receive_chat_request).start()
-Thread(target=receive_chat_sendrqst).start()
+Thread(target=routine_receive_chat_sendrqst).start()
