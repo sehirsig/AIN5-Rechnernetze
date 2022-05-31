@@ -280,3 +280,4 @@ def routine_user_input():
 Thread(target=routine_wait_for_new_users).start()
 Thread(target=routine_user_input).start()
 Thread(target=routine_receive_chat_request).start()
+Thread(target=receive_chat_sendrqst).start()
