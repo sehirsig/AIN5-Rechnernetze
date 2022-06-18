@@ -1,15 +1,27 @@
-import base64
-import socket
+import requests
+from bs4 import BeautifulSoup
+from bs2json import bs2json
+import re
 
 username = input()
 password = input()
 
-username = (base64.b64encode(username.encode('utf-8'))).decode('utf-8')
-password = (base64.b64encode(password.encode('utf-8'))).decode('utf-8')
+server = 'https://moodle.htwg-konstanz.de/moodle/'
+res1 = requests.get(server)
 
-server = "https://moodle.htwg-konstanz.de/moodle/mod/chat/gui_header_js/index.php?id=354"
-port = 443
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.settimeout(10)
-s.connect((server, port))
+def search_login_token():
+    text = res1.text
+    start_pos = re.search('"logintoken" value="', text).regs[0][1]
+    LENGTH = 32
+    return text[start_pos: start_pos + LENGTH]
+
+
+search_login_token()
+
+login = {'logintoken': search_login_token(), 'username': username, 'password': password}
+res2 = requests.post(server, login)
+res3 = requests.get(server + 'mod/chat/gui_basic/index.php?id=354')
+res4 = requests.post(server + 'mod/chat/gui_basic/index.php?id=354', 'Hallo')
+
+print()
