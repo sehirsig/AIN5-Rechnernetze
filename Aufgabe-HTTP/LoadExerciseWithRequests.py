@@ -23,6 +23,9 @@ def search_login_token():
 login = "username=" + username + "&password=" + password + "&logintoken=" + search_login_token()
 response2 = session.post(server, login, cookies=session_cookie, allow_redirects=False)
 
+if "Sie sind nicht angemeldet" in response2.text:
+    print("Anmelden hat nicht funktioniert")
+
 pdf_url = server + 'pluginfile.php/346660/mod_assign/introattachment/0/AIN%20RN%20-%20Laboraufgabe%20-%20HTTP.pdf'
 response2 = session.get(pdf_url, cookies=session_cookie, allow_redirects=False)
 file = response2.content
