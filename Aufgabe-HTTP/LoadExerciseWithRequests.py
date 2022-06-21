@@ -39,7 +39,7 @@ response3 = session.get(pdf_url, cookies=session_cookie, allow_redirects=False)
 file = response3.content
 
 #Aufgabe 3, in Lab5Chat eine Nachricht abrufen und eine Nachricht senden
-get_command = "https://moodle.htwg-konstanz.de/moodle/mod/chat/gui_basic/index.php?id=354&newonly=0"
+get_command = "https://moodle.htwg-konstanz.de/moodle/mod/chat/gui_basic/index.php"
 response44 = session.get(get_command, cookies=session_cookie)
 print("Read Labchat:\n " + response44.text)
 
@@ -57,6 +57,7 @@ post_command = 'https://moodle.htwg-konstanz.de/moodle/mod/chat/gui_basic/index.
 sess_key = getSesskey()
 last_key = getLast()
 print(sess_key)
+print(last_key)
 payload = {'message': 'HalloBotTest','id': '345', 'groupid': '0', 'last': last_key, 'sesskey': sess_key}
 response_sendChat = session.post(post_command,data=payload, cookies=session_cookie)
 #print("Response SendChat: " + response_sendChat.text)
