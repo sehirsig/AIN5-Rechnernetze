@@ -1,3 +1,5 @@
+from time import sleep
+
 import requests
 import re
 
@@ -22,17 +24,18 @@ def search_login_token():
 #Aufgabe 1, in Moodle einloggen
 token = search_login_token()
 payload = {'anchor': '', 'logintoken':  token, 'username': username, 'password': password}
-login = "username=" + username + "&password=" + password + "&logintoken=" + search_login_token()
 response2 = session.post(server + "/login/index.php", data=payload, cookies=session_cookie, allow_redirects=False)
 
-if "Sie sind nicht angemeldet" in response2.text:
-    print("Anmelden hat nicht funktioniert")
-
+rechnernetze_seite = session.get("https://moodle.htwg-konstanz.de/moodle/course/view.php?id=5256")
+if "Rechnernetze" in rechnernetze_seite.text:
+    print("Anmeldung hat funktioniert!")
+else:
+    print("Anmelden hat NICHT funktioniert!")
 
 #Aufgabe 2, Aufgabenstellung herunterladen
 pdf_url = server + 'pluginfile.php/346660/mod_assign/introattachment/0/AIN%20RN%20-%20Laboraufgabe%20-%20HTTP.pdf'
 response3 = session.get(pdf_url, cookies=session_cookie, allow_redirects=False)
-print("Response 3: " + response3.text)
+#print("Response 3: " + response3.text)
 file = response3.content
 
 #Aufgabe 3, in Lab5Chat eine Nachricht abrufen und eine Nachricht senden
