@@ -39,20 +39,28 @@ response3 = session.get(pdf_url, cookies=session_cookie, allow_redirects=False)
 file = response3.content
 
 #Aufgabe 3, in Lab5Chat eine Nachricht abrufen und eine Nachricht senden
-get_command = '/mod/chat/gui_basic/index.php?id=354 HTTP/1.1'
-response44 = session.get(server + get_command, cookies=session_cookie)
-#print("Response 44: " + response44.text)
+get_command = "https://moodle.htwg-konstanz.de/moodle/mod/chat/gui_basic/index.php?id=354&newonly=0"
+response44 = session.get(get_command, cookies=session_cookie)
+print("Read Labchat:\n " + response44.text)
 
-post_command = '/mod/chat/gui_basic/index.php HTTP/1.1'
-payload = {'message': 'HalloTest', 'id':  354, 'groupid': 0}
-response_sendChat = session.post(server+get_command,data=payload, cookies=session_cookie)
+def getSesskey():
+    start_pos = re.search('"sesskey":"', response44.text).regs[0][1]
+    LENGTH = 10
+    return response44.text[start_pos: start_pos + LENGTH]
+
+def getLast():
+    start_pos = re.search('name="last" value="', response44.text).regs[0][1]
+    LENGTH = 10
+    return response44.text[start_pos: start_pos + LENGTH]
+
+post_command = 'https://moodle.htwg-konstanz.de/moodle/mod/chat/gui_basic/index.php'
+sess_key = getSesskey()
+last_key = getLast()
+print(sess_key)
+payload = {'message': 'HalloBotTest','id': '345', 'groupid': '0', 'last': last_key, 'sesskey': sess_key}
+response_sendChat = session.post(post_command,data=payload, cookies=session_cookie)
 #print("Response SendChat: " + response_sendChat.text)
 
-post_command = '/mod/chat/gui_header_js/insert.php HTTP/1.1'
-chat_sid = ""
-payload = {'chat_sid': chat_sid, 'chat_message': "Hallo"}
-response4 = session.post(server + post_command, data=payload, cookies=session_cookie)
-#print("Response 4: " + response4.text)
 
 #Aufgabe 4, Abgabe dieser Laborübung hochladen
 # Benötigt: Post Command, MoodleSession Cookie.
