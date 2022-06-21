@@ -116,6 +116,8 @@ response5 = session.post(post_command, files=files, cookies=session_cookie, allo
 submission_site = response5.text
 
 post_command = 'https://moodle.htwg-konstanz.de/moodle/mod/assign/view.php'
+
+# first post from upload
 files = {'id': 219345, 'sesskey': sess_key, 'action': 'savesubmission', 'files_filemanager': '838689255',
          '_qf__mod_assign_submission_form': '1', 'userid': "19511"}
 response5 = session.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
@@ -129,6 +131,7 @@ def get_client_id():
     return submission_site[start_pos: start_pos + LENGTH]
 
 
+# second post from upload
 client_id = get_client_id()
 files = {'sesskey': sess_key, 'client_id': client_id, 'filepath': '/', 'item_id': '5369759423654'}
 response5 = requests.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
