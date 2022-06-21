@@ -60,7 +60,7 @@ sess_key = getSesskey()
 last_key = getLast()
 print(sess_key)
 print(last_key)
-payload = {'message': MESSAGE,'id': '345', 'groupid': '0', 'last': last_key, 'sesskey': sess_key}
+payload = {'message': MESSAGE,'id': '354', 'groupid': '0', 'last': last_key, 'sesskey': sess_key}
 response_sendChat = session.post(post_command,data=payload, cookies=session_cookie)
 #print("Response SendChat: " + response_sendChat.text)
 
