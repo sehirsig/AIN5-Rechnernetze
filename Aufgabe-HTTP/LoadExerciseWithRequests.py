@@ -77,16 +77,32 @@ response_sendChat = session.post(post_command, data=payload, cookies=session_coo
 
 # Aufgabe 4, Abgabe dieser Laborübung hochladen
 # Benötigt: Post Command, MoodleSession Cookie.
-post_command = 'https://moodle.htwg-konstanz.de/moodle/repository/repository_ajax.php?action=upload'
+post_command = 'https://moodle.htwg-konstanz.de/moodle/mod/assign/view.php?id=219345&action=editsubmission'
+
+response5 = session.get(post_command, cookies=session_cookie)
+
 files = {'repo_upload_file': open('test2.pdf', 'rb'), 'sesskey': sess_key, 'repo_id': '3', 'itemid': '838689255',
-         'author': 'Sebastian Hirsig', 'savepath': '/', 'title': "Test", 'ctx_id': '346660'}
-response5 = requests.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
+         'author': 'Johannes Wirbser', 'savepath': '/', 'title': "Test", 'ctx_id': '346660'}
+response5 = session.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
+submission_site = response5.text
 
 post_command = 'https://moodle.htwg-konstanz.de/moodle/mod/assign/view.php'
 files = {'id': 219345, 'sesskey': sess_key, 'action': 'savesubmission', 'files_filemanager': '838689255',
          '_qf__mod_assign_submission_form': '1', 'userid': "19511"}
-response5 = requests.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
+response5 = session.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
+
+
 # print("Response 5: " + response5.text)
+
+def get_client_id():
+    start_pos = re.search('"client_id":"', submission_site).regs[0][1]
+    LENGTH = 13
+    return submission_site[start_pos: start_pos + LENGTH]
+
+
+client_id = get_client_id()
+files = {'sesskey': sess_key, 'client_id': client_id, 'filepath': '/', 'item_id': '5369759423654'}
+response5 = requests.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
 
 # Gepostete Files speichern/abgeben
 post_command = 'mod/assign/view.php HTTP/1.1'
