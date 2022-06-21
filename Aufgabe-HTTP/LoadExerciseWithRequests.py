@@ -45,6 +45,9 @@ get_command = "https://moodle.htwg-konstanz.de/moodle/mod/chat/gui_basic/index.p
 response44 = session.get(get_command, cookies=session_cookie)
 #print("Read Labchat:\n " + response44.text)
 
+def readLastMessage():
+    start_pos = re.search('"sesskey":"', response44.text).regs[0][1]
+
 def getSesskey():
     start_pos = re.search('"sesskey":"', response44.text).regs[0][1]
     LENGTH = 10
@@ -62,7 +65,7 @@ print(f"SessKey: {sess_key}")
 print(f"Last: {last_key}")
 payload = {'message': 'HalloBotTest','id': '354', 'groupid': '0', 'last': last_key, 'sesskey': sess_key}
 payload = {'message': MESSAGE,'id': '354', 'groupid': '0', 'last': last_key, 'sesskey': sess_key}
-response_sendChat = session.post(post_command,data=payload, cookies=session_cookie)
+response_sendChat = session.post(post_command,data=payload, cookies=session_cookie, allow_redirects=False)
 #print("Response SendChat: " + response_sendChat.text)
 
 
@@ -70,16 +73,16 @@ response_sendChat = session.post(post_command,data=payload, cookies=session_cook
 # Benötigt: Post Command, MoodleSession Cookie.
 post_command = 'https://moodle.htwg-konstanz.de/moodle/repository/repository_ajax.php?action=upload'
 files = {'repo_upload_file': open('test2.pdf','rb'), 'sesskey': sess_key, 'repo_id': '3', 'itemid':'838689255', 'author': 'Sebastian Hirsig', 'savepath':'/', 'title':"Test", 'ctx_id':'346660'}
-response5 = requests.post(post_command, files=files, cookies=session_cookie)
+response5 = requests.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
 
 post_command = 'https://moodle.htwg-konstanz.de/moodle/mod/assign/view.php'
 files = {'id': 219345, 'sesskey': sess_key, 'action': 'savesubmission', 'files_filemanager':'838689255', '_qf__mod_assign_submission_form':'1', 'userid':"19511"}
-response5 = requests.post(post_command, files=files, cookies=session_cookie)
+response5 = requests.post(post_command, files=files, cookies=session_cookie, allow_redirects=False)
 #print("Response 5: " + response5.text)
 
 #Gepostete Files speichern/abgeben
 post_command = 'mod/assign/view.php HTTP/1.1'
 payload = {'submitbutton': '%C3%84nderungen+speichern',}
-session.post(server + post_command, data=payload, cookies=session_cookie,)
+session.post(server + post_command, data=payload, cookies=session_cookie, allow_redirects=False)
 #print(response2.text)
 session.close()
